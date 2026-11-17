@@ -201,10 +201,10 @@
     list.appendChild(inp);
   });
 
-    async function loadCelebPool(catKey) {
+  async function loadCelebPool(catKey) {
     if (poolCache[catKey] && poolCache[catKey].length >= 25) return poolCache[catKey];
     const occValues = CAT_QUERIES[catKey] || CAT_QUERIES.all;
-    const wikiHost = "de." + "wikipedia" + ".org";
+    const wikiHost = "de\u002ewikipedia\u002eorg";
     const sparql = [
       "SELECT DISTINCT ?person ?personLabel ?occLabel ?countryLabel ?birth ?article WHERE {",
       "  VALUES ?occ { " + occValues + " }",
@@ -217,7 +217,7 @@
       "} ORDER BY DESC(?links) LIMIT 160"
     ].join("\n");
 
-    const ep = "https://query." + "wikidata" + ".org/sparql";
+    const ep = "https://query\u002ewikidata\u002eorg/sparql";
     const url = ep + "?format=json&query=" + encodeURIComponent(sparql);
     const res = await fetch(url, { headers: { "Accept": "application/sparql-results+json" } });
     if (!res.ok) throw new Error("Wikidata-Abfrage fehlgeschlagen (" + res.status + ").");
@@ -251,7 +251,7 @@
 
   async function fetchWikiSummary(wikiTitle) {
     try {
-      const api = "https://de." + "wikipedia" + ".org/api/rest_v1/page/summary/" + encodeURIComponent(wikiTitle);
+      const api = "https://de\u002ewikipedia\u002eorg/api/rest_v1/page/summary/" + encodeURIComponent(wikiTitle);
       const res = await fetch(api);
       if (!res.ok) return { bio: "", imgUrl: "" };
       const json = await res.json();
