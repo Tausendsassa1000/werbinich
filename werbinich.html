@@ -159,17 +159,17 @@
 </div>
 <script>
 (function() {
-  const CAT_QUERIES = {
-    all: "wd:Q33999 wd:Q10800557 wd:Q177220 wd:Q639669 wd:Q82955 wd:Q2066131 wd:Q901",
-    film: "wd:Q33999 wd:Q10800557 wd:Q2526255",
-    music: "wd:Q177220 wd:Q639669 wd:Q36834",
-    sport: "wd:Q2066131 wd:Q937857 wd:Q10833314",
-    politics: "wd:Q82955 wd:Q30461",
-    science: "wd:Q901 wd:Q1028181 wd:Q36180"
+  const CAT_SOURCES = {
+    all: ["Schauspieler", "Sänger", "Tennisspieler", "Fußballspieler", "Politiker", "Physiker", "Regisseur"],
+    film: ["Filmschauspieler", "Filmregisseur", "Oscarpreisträger"],
+    music: ["Pop-Sänger", "Rocksänger", "Komponist", "Pianist"],
+    sport: ["Tennisspieler", "Fußballspieler", "Formel-1-Rennfahrer", "Skirennläufer", "Leichtathlet"],
+    politics: ["Bundeskanzler_(Deutschland)", "Präsident_der_Vereinigten_Staaten", "Bundesrat_(Schweiz)", "Staatsmann"],
+    science: ["Physiker", "Nobelpreisträger_für_Physik", "Maler", "Schriftsteller"]
   };
 
   let poolCache = {};
-  let usedQids = new Set();
+  let usedTitles = new Set();
   let pixelTimer = null;
   let cfg = { cat: "all", choices: 6, target: 25 };
   let st = {
@@ -202,49 +202,44 @@
   });
 
   async function loadCelebPool(catKey) {
-    if (poolCache[catKey] && poolCache[catKey].length >= 25) return poolCache[catKey];
-    const occValues = CAT_QUERIES[catKey] || CAT_QUERIES.all;
-    const wikiHost = "de\u002ewikipedia\u002eorg";
-    const sparql = [
-      "SELECT DISTINCT ?person ?personLabel ?occLabel ?countryLabel ?birth ?article WHERE {",
-      "  VALUES ?occ { " + occValues + " }",
-      "  ?person wdt:P31 wd:Q5; wdt:P106 ?occ; wdt:P18 ?img; wikibase:sitelinks ?links.",
-      "  FILTER(?links > 45)",
-      "  OPTIONAL { ?person wdt:P27 ?country. }",
-      "  OPTIONAL { ?person wdt:P569 ?birth. }",
-      "  ?article schema:about ?person; schema:isPartOf <https://" + wikiHost + "/>.",
-      "  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en\". }",
-      "} ORDER BY DESC(?links) LIMIT 160"
-    ].join("\n");
+    if (poolCache[catKey] && poolCache[catKey].length >= 20) return poolCache[catKey];
+    const cats = CAT_SOURCES[catKey] || CAT_SOURCES.all;
+    const wikiApi = "https://de\u002ewikipedia\u002eorg/w/api.php";
+    const collected = new Map();
 
-    const ep = "https://query\u002ewikidata\u002eorg/sparql";
-    const url = ep + "?format=json&query=" + encodeURIComponent(sparql);
-    const res = await fetch(url, { headers: { "Accept": "application/sparql-results+json" } });
-    if (!res.ok) throw new Error("Wikidata-Abfrage fehlgeschlagen (" + res.status + ").");
-    const data = await res.json();
-
-    const map = new Map();
-    (data.results.bindings || []).forEach(b => {
-      const qid = b.person.value.split("/").pop();
-      const name = b.personLabel ? b.personLabel.value : "";
-      if (!name || name.startsWith("Q")) return;
-      if (!map.has(qid)) {
-        const wikiTitle = decodeURIComponent(b.article.value.split("/wiki/").pop());
-        const firstName = name.split(" ").at(0);
-        const birthYear = b.birth ? b.birth.value.slice(0, 4) : "";
-        map.set(qid, {
-          qid: qid,
-          name: name,
-          firstName: firstName,
-          wikiTitle: wikiTitle,
-          occ: b.occLabel ? b.occLabel.value : "Persönlichkeit",
-          country: b.countryLabel ? b.countryLabel.value : "International",
-          birthYear: birthYear
+    for (let i = 0; i < cats.length; i++) {
+      const cName = cats.at(i);
+      const url = wikiApi + "?action=query&generator=categorymembers&gcmtitle=Kategorie:" + encodeURIComponent(cName) +
+        "&gcmtype=page&gcmlimit=45&prop=pageimages|description&piprop=thumbnail&pithumbsize=420&format=json&origin=*";
+      try {
+        const res = await fetch(url);
+        if (!res.ok) continue;
+        const json = await res.json();
+        const pages = (json.query && json.query.pages) ? Object.values(json.query.pages) : [];
+        pages.forEach(p => {
+          if (p.thumbnail && p.thumbnail.source && !p.title.includes(":") && !p.title.includes("(")) {
+            const parts = p.title.split(" ");
+            if (parts.length >= 2 && !collected.has(p.title)) {
+              const desc = p.description || "Bekannte Persönlichkeit";
+              const yearMatch = desc.match(/\b(18|19|20)\d{2}\b/);
+              collected.set(p.title, {
+                qid: String(p.pageid),
+                name: p.title,
+                firstName: parts.at(0),
+                wikiTitle: p.title,
+                imgUrl: p.thumbnail.source,
+                occ: desc.split(",").at(0) || desc,
+                country: desc,
+                birthYear: yearMatch ? yearMatch.at(0) : ""
+              });
+            }
+          }
         });
-      }
-    });
+      } catch (e) {}
+    }
 
-    const list = Array.from(map.values());
+    const list = Array.from(collected.values());
+    if (list.length < 8) throw new Error("Zu wenige Einträge geladen – bitte erneut versuchen.");
     poolCache[catKey] = list;
     return list;
   }
@@ -392,14 +387,14 @@
 
     try {
       const pool = await loadCelebPool(cfg.cat);
-      let avail = pool.filter(c => !usedQids.has(c.qid));
+      let avail = pool.filter(c => !usedTitles.has(c.qid));
       if (avail.length < cfg.choices) {
-        usedQids.clear();
+        usedTitles.clear();
         avail = pool;
       }
 
       const target = avail.at(Math.floor(Math.random() * avail.length));
-      usedQids.add(target.qid);
+      usedTitles.add(target.qid);
       st.current = target;
 
       const distractors = shuffle(pool.filter(c => c.qid !== target.qid)).slice(0, cfg.choices - 1);
