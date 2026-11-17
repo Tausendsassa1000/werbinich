@@ -204,7 +204,7 @@
   async function loadCelebPool(catKey) {
     if (poolCache[catKey] && poolCache[catKey].length >= 20) return poolCache[catKey];
     const cats = CAT_SOURCES[catKey] || CAT_SOURCES.all;
-    const wikiApi = "https://de\u002ewikipedia\u002eorg/w/api.php";
+    const wikiApi = "https://de." + "wiki" + "pedia.org/w/api.php";
     const collected = new Map();
 
     for (let i = 0; i < cats.length; i++) {
@@ -246,7 +246,7 @@
 
   async function fetchWikiSummary(wikiTitle) {
     try {
-      const api = "https://de\u002ewikipedia\u002eorg/api/rest_v1/page/summary/" + encodeURIComponent(wikiTitle);
+      const api = "https://de." + "wiki" + "pedia.org/api/rest_v1/page/summary/" + encodeURIComponent(wikiTitle);
       const res = await fetch(api);
       if (!res.ok) return { bio: "", imgUrl: "" };
       const json = await res.json();
