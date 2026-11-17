@@ -160,12 +160,12 @@
 <script>
 (function() {
   const CAT_SOURCES = {
-    all: ["Schauspieler", "Sänger", "Tennisspieler", "Fußballspieler", "Politiker", "Physiker", "Regisseur"],
-    film: ["Filmschauspieler", "Filmregisseur", "Oscarpreisträger"],
-    music: ["Pop-Sänger", "Rocksänger", "Komponist", "Pianist"],
-    sport: ["Tennisspieler", "Fußballspieler", "Formel-1-Rennfahrer", "Skirennläufer", "Leichtathlet"],
-    politics: ["Bundeskanzler_(Deutschland)", "Präsident_der_Vereinigten_Staaten", "Bundesrat_(Schweiz)", "Staatsmann"],
-    science: ["Physiker", "Nobelpreisträger_für_Physik", "Maler", "Schriftsteller"]
+    all: ["Filmschauspieler", "Pop-Sänger", "Tennisspieler", "Fußballspieler", "Bundeskanzler_(Deutschland)", "Bundesrat_(Schweiz)", "Physiker"],
+    film: ["Filmschauspieler", "Filmregisseur", "Oscarpreisträger", "Schauspieler_(Deutschland)"],
+    music: ["Pop-Sänger", "Rocksänger", "Schlagersänger", "Komponist", "Pianist"],
+    sport: ["Tennisspieler", "Fußballspieler", "Formel-1-Rennfahrer", "Skirennläufer", "Leichtathlet", "Sportler_(Deutschland)", "Sportler_(Schweiz)"],
+    politics: ["Bundeskanzler_(Deutschland)", "Bundesrat_(Schweiz)", "Bundeskanzler_(Österreich)", "Präsident_der_Vereinigten_Staaten", "Politiker_(Deutschland)"],
+    science: ["Physiker", "Nobelpreisträger_für_Physik", "Maler", "Schriftsteller", "Erfinder"]
   };
 
   let poolCache = {};
@@ -202,22 +202,25 @@
   });
 
   async function loadCelebPool(catKey) {
-    if (poolCache[catKey] && poolCache[catKey].length >= 20) return poolCache[catKey];
+    if (poolCache[catKey] && poolCache[catKey].length >= 40) return poolCache[catKey];
     const cats = CAT_SOURCES[catKey] || CAT_SOURCES.all;
     const wikiApi = "https://de." + "wiki" + "pedia.org/w/api.php";
     const collected = new Map();
+    const letters = ["A", "B", "D", "F", "G", "H", "K", "L", "M", "P", "R", "S", "T", "W"];
 
     for (let i = 0; i < cats.length; i++) {
       const cName = cats.at(i);
+      const randLetter = letters.at(Math.floor(Math.random() * letters.length));
       const url = wikiApi + "?action=query&generator=categorymembers&gcmtitle=Kategorie:" + encodeURIComponent(cName) +
-        "&gcmtype=page&gcmlimit=45&prop=pageimages|description&piprop=thumbnail&pithumbsize=420&format=json&origin=*";
+        "&gcmtype=page&gcmlimit=100&gcmstartsortkeyprefix=" + randLetter +
+        "&prop=pageimages|description&piprop=thumbnail&pithumbsize=420&format=json&origin=*";
       try {
         const res = await fetch(url);
         if (!res.ok) continue;
         const json = await res.json();
         const pages = (json.query && json.query.pages) ? Object.values(json.query.pages) : [];
         pages.forEach(p => {
-            if (p.thumbnail && p.thumbnail.source && p.thumbnail.height >= p.thumbnail.width * 1.1 && !/(band|group|team|cast|with|and|und|duo|trio|ensemble)/i.test(p.thumbnail.source) && !p.title.includes(":") && !p.title.includes("(")) {
+          if (p.thumbnail && p.thumbnail.source && p.thumbnail.height >= p.thumbnail.width * 1.02 && !/(band|group|team|cast|with|and|und|duo|trio|ensemble)/i.test(p.thumbnail.source) && !p.title.includes(":") && !p.title.includes("(")) {
             const parts = p.title.split(" ");
             if (parts.length >= 2 && !collected.has(p.title)) {
               const desc = p.description || "Bekannte Persönlichkeit";
@@ -243,7 +246,6 @@
     poolCache[catKey] = list;
     return list;
   }
-
   async function fetchWikiSummary(wikiTitle) {
     try {
       const api = "https://de." + "wiki" + "pedia.org/api/rest_v1/page/summary/" + encodeURIComponent(wikiTitle);
