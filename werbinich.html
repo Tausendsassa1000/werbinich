@@ -201,22 +201,23 @@
     list.appendChild(inp);
   });
 
-  async function loadCelebPool(catKey) {
+    async function loadCelebPool(catKey) {
     if (poolCache[catKey] && poolCache[catKey].length >= 25) return poolCache[catKey];
     const occValues = CAT_QUERIES[catKey] || CAT_QUERIES.all;
+    const wikiHost = "de." + "wikipedia" + ".org";
     const sparql = [
-      "SELECT DISTINCT ?person ?personLabel ?img ?occLabel ?countryLabel ?birth ?article WHERE {",
+      "SELECT DISTINCT ?person ?personLabel ?occLabel ?countryLabel ?birth ?article WHERE {",
       "  VALUES ?occ { " + occValues + " }",
       "  ?person wdt:P31 wd:Q5; wdt:P106 ?occ; wdt:P18 ?img; wikibase:sitelinks ?links.",
       "  FILTER(?links > 45)",
       "  OPTIONAL { ?person wdt:P27 ?country. }",
       "  OPTIONAL { ?person wdt:P569 ?birth. }",
-      "  ?article schema:about ?person; schema:isPartOf <https://" + "de.wikipedia.org" + "/>.",
+      "  ?article schema:about ?person; schema:isPartOf <https://" + wikiHost + "/>.",
       "  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en\". }",
       "} ORDER BY DESC(?links) LIMIT 160"
     ].join("\n");
 
-    const ep = ["https:/", "query.wikidata.org", "sparql"].join("/");
+    const ep = "https://query." + "wikidata" + ".org/sparql";
     const url = ep + "?format=json&query=" + encodeURIComponent(sparql);
     const res = await fetch(url, { headers: { "Accept": "application/sparql-results+json" } });
     if (!res.ok) throw new Error("Wikidata-Abfrage fehlgeschlagen (" + res.status + ").");
@@ -228,9 +229,6 @@
       const name = b.personLabel ? b.personLabel.value : "";
       if (!name || name.startsWith("Q")) return;
       if (!map.has(qid)) {
-        const rawImg = b.img.value.replace(/^http:/, "https:");
-        const fileName = decodeURIComponent(rawImg.split("/").pop());
-        const thumbUrl = ["https:/", "commons.wikimedia.org", "wiki", "Special:FilePath", encodeURIComponent(fileName) + "?width=420"].join("/");
         const wikiTitle = decodeURIComponent(b.article.value.split("/wiki/").pop());
         const firstName = name.split(" ").at(0);
         const birthYear = b.birth ? b.birth.value.slice(0, 4) : "";
@@ -238,7 +236,6 @@
           qid: qid,
           name: name,
           firstName: firstName,
-          imgUrl: thumbUrl,
           wikiTitle: wikiTitle,
           occ: b.occLabel ? b.occLabel.value : "Persönlichkeit",
           country: b.countryLabel ? b.countryLabel.value : "International",
@@ -252,15 +249,16 @@
     return list;
   }
 
-  async function fetchWikiBio(wikiTitle) {
+  async function fetchWikiSummary(wikiTitle) {
     try {
-      const api = ["https:/", "de.wikipedia.org", "api", "rest_v1", "page", "summary", encodeURIComponent(wikiTitle)].join("/");
+      const api = "https://de." + "wikipedia" + ".org/api/rest_v1/page/summary/" + encodeURIComponent(wikiTitle);
       const res = await fetch(api);
-      if (!res.ok) return "";
+      if (!res.ok) return { bio: "", imgUrl: "" };
       const json = await res.json();
-      return json.extract || "";
+      const imgUrl = (json.thumbnail && json.thumbnail.source) ? json.thumbnail.source : "";
+      return { bio: json.extract || "", imgUrl: imgUrl };
     } catch (e) {
-      return "";
+      return { bio: "", imgUrl: "" };
     }
   }
   function renderScoreboard() {
@@ -424,7 +422,14 @@
         optsGrid.appendChild(btn);
       });
 
-      startPixelReveal(target.imgUrl);
+      const summary = await fetchWikiSummary(target.wikiTitle);
+      if (!summary.imgUrl) {
+        loadNextCeleb();
+        return;
+      }
+      st.current.imgUrl = summary.imgUrl;
+      st.current.bio = summary.bio;
+      startPixelReveal(summary.imgUrl);
     } catch (err) {
       optsGrid.innerHTML = "<div style='color:#ef4444;'>" + err.message + "</div>";
     }
@@ -471,7 +476,7 @@
 
     resBio.innerText = "Lade Wikipedia-Kurzbiografie...";
     resBox.style.display = "block";
-    const bio = await fetchWikiBio(st.current.wikiTitle);
+    const bio = st.current.bio;
     resBio.innerText = bio || (st.current.name + " (" + st.current.occ + ", " + st.current.country + ")");
   }
 
