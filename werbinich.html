@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WER BIN ICH? | Das Promi-Pixel-Quiz</title>
+<style>
+  #wbi-app {
+    --bg: #0f172a; --card: #1e293b; --acc: #38bdf8; --gold: #f59e0b;
+    --ok: #10b981; --no: #ef4444; --txt: #f8fafc; --mut: #94a3b8;
+    font-family: system-ui, -apple-system, sans-serif;
+    background: var(--bg); color: var(--txt); max-width: 880px;
+    margin: 15px auto; padding: 22px; border-radius: 16px;
+    box-shadow: 0 12px 35px rgba(0,0,0,0.45); box-sizing: border-box;
+  }
+  #wbi-app *, #wbi-app *::before, #wbi-app *::after { box-sizing: border-box; }
+  .wbi-hdr { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 12px; margin-bottom: 18px; flex-wrap: wrap; gap: 8px; }
+  .wbi-logo { font-size: 1.65rem; font-weight: 900; letter-spacing: 1.5px; color: var(--acc); margin: 0; }
+  .wbi-logo span { font-size: 0.85rem; color: var(--mut); font-weight: 400; letter-spacing: 0; }
+  .wbi-box { background: var(--card); padding: 16px; border-radius: 12px; margin-bottom: 14px; border: 1px solid #334155; }
+  .wbi-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+  .wbi-lbl { display: block; font-size: 0.88rem; font-weight: 700; color: var(--acc); margin-bottom: 6px; }
+  .wbi-inp, .wbi-sel { width: 100%; padding: 10px; border-radius: 8px; background: #0f172a; color: #fff; border: 1px solid #475569; font-size: 0.95rem; margin-bottom: 8px; }
+  .wbi-btn { background: var(--acc); color: #0f172a; border: none; padding: 11px 22px; border-radius: 25px; font-weight: 800; font-size: 0.98rem; cursor: pointer; transition: transform 0.1s, opacity 0.2s; }
+  .wbi-btn:hover:not(:disabled) { transform: scale(1.02); }
+  .wbi-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .wbi-btn-sec { background: #334155; color: #fff; font-weight: 600; padding: 8px 14px; font-size: 0.85rem; }
+  .wbi-btn-tip { background: #1e293b; color: #fbbf24; border: 1px solid #f59e0b; padding: 8px 12px; font-size: 0.85rem; border-radius: 10px; }
+  .wbi-scr { display: none; }
+  .wbi-scr.act { display: block; }
+  .wbi-scores { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 14px; }
+  .wbi-pbadge { padding: 7px 14px; border-radius: 20px; background: #1e293b; border: 1px solid #475569; font-size: 0.88rem; }
+  .wbi-pbadge.cur { background: var(--acc); color: #0f172a; font-weight: 800; border-color: var(--acc); }
+  .wbi-stage { display: grid; grid-template-columns: 240px 1fr; gap: 16px; align-items: start; }
+  .wbi-canvas-wrap { position: relative; width: 100%; aspect-ratio: 3 / 4; background: #090d16; border-radius: 12px; overflow: hidden; border: 2px solid #475569; }
+  .wbi-canvas-wrap canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+  .wbi-bonus-tag { position: absolute; top: 8px; left: 8px; right: 8px; background: rgba(245, 158, 11, 0.92); color: #000; font-size: 0.75rem; font-weight: 800; padding: 4px 8px; border-radius: 6px; text-align: center; }
+  .wbi-opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap: 8px; margin-top: 10px; }
+  .wbi-opt { background: #0f172a; color: #fff; border: 2px solid #475569; padding: 11px 12px; border-radius: 10px; text-align: left; font-size: 0.92rem; font-weight: 600; cursor: pointer; }
+  .wbi-opt:hover:not(:disabled) { border-color: var(--acc); background: #1e293b; }
+  .wbi-opt.ok { background: rgba(16, 185, 129, 0.25); border-color: var(--ok); color: #6ee7b7; }
+  .wbi-opt.no { background: rgba(239, 68, 68, 0.25); border-color: var(--no); color: #fca5a5; }
+  .wbi-tip-pill { display: inline-block; background: rgba(245,158,11,0.15); border: 1px solid #f59e0b; color: #fde68a; padding: 5px 10px; border-radius: 8px; font-size: 0.85rem; margin: 4px 4px 0 0; }
+  @media (max-width: 640px) {
+    #wbi-app { padding: 12px; margin: 6px auto; }
+    .wbi-stage { grid-template-columns: 1fr; }
+    .wbi-canvas-wrap { max-width: 210px; margin: 0 auto; }
+    .wbi-opts { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+    .wbi-opt { padding: 9px; font-size: 0.82rem; }
+  }
+</style>
+</head>
+<body style="margin:0; padding:10px; background:#090d16;">
+<div id="wbi-app">
+  <div class="wbi-hdr">
+    <h1 class="wbi-logo">WER BIN ICH? <span>| Das Promi-Pixel-Quiz</span></h1>
+    <div style="font-size:0.82rem; color:var(--mut);">Wikimedia &amp; Wikipedia</div>
+  </div>
+
+  <!-- 1. SETUP SCREEN -->
+  <div id="wbi-setup" class="wbi-scr act">
+    <div class="wbi-grid2">
+      <div class="wbi-box">
+        <label class="wbi-lbl">1. Kategorie &amp; Regeln</label>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <span style="font-size:0.9rem;">Promi-Kategorie:</span>
+          <select id="wbi-cat" class="wbi-sel" style="width:165px; margin:0;">
+            <option value="all" selected>Alle Prominenten</option>
+            <option value="film">Film &amp; Schauspiel</option>
+            <option value="music">Musik &amp; Gesang</option>
+            <option value="sport">Sport</option>
+            <option value="politics">Politik &amp; Geschichte</option>
+            <option value="science">Wissenschaft &amp; Kunst</option>
+          </select>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <span style="font-size:0.9rem;">Auswahl-Namen:</span>
+          <select id="wbi-choices" class="wbi-sel" style="width:165px; margin:0;">
+            <option value="4">4 Personen</option>
+            <option value="6" selected>6 Personen</option>
+            <option value="8">8 Personen</option>
+          </select>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:0.9rem;">Siegpunktzahl:</span>
+          <select id="wbi-target" class="wbi-sel" style="width:165px; margin:0;">
+            <option value="15">15 Punkte</option>
+            <option value="25" selected>25 Punkte</option>
+            <option value="40">40 Punkte</option>
+            <option value="50">50 Punkte</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="wbi-box">
+        <label class="wbi-lbl">2. Spieler eintragen (min. 1)</label>
+        <div id="wbi-plist">
+          <input type="text" class="wbi-inp wbi-pin" value="Spieler 1">
+        </div>
+        <button type="button" id="wbi-add-p" class="wbi-btn wbi-btn-sec">+ Spieler hinzufügen</button>
+      </div>
+    </div>
+
+    <div style="text-align:center; margin-top:8px;">
+      <button type="button" id="wbi-start" class="wbi-btn" style="padding:14px 38px; font-size:1.05rem;">🎭 Quiz starten</button>
+      <p id="wbi-err" style="color:var(--no); font-size:0.9rem; margin-top:10px;"></p>
+    </div>
+  </div>
+
+  <!-- 2. GAME SCREEN -->
+  <div id="wbi-game" class="wbi-scr">
+    <div id="wbi-scores" class="wbi-scores"></div>
+
+    <div class="wbi-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
+        <div>
+          <span id="wbi-turn" style="font-size:1.15rem; font-weight:800; color:var(--acc);">Spieler 1 ist dran!</span>
+          <span id="wbi-streak" style="font-size:0.84rem; color:var(--mut); margin-left:6px;">(Zug 1/2)</span>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <span id="wbi-pts-badge" style="background:rgba(16,185,129,0.2); border:1px solid var(--ok); color:#6ee7b7; padding:4px 10px; border-radius:12px; font-size:0.84rem; font-weight:800;">Aktuell: 4 + 1 Bonus Pkt.</span>
+          <button type="button" id="wbi-skip" class="wbi-btn wbi-btn-sec" style="padding:5px 10px; font-size:0.8rem;">⏭ Überspringen</button>
+        </div>
+      </div>
+
+      <div class="wbi-stage">
+        <div class="wbi-canvas-wrap">
+          <canvas id="wbi-canvas" width="300" height="400"></canvas>
+          <div id="wbi-bonus-tag" class="wbi-bonus-tag">⚡ Pixel-Bonus aktiv (+1 Pkt.)</div>
+        </div>
+
+        <div>
+          <div style="margin-bottom:10px;">
+            <button type="button" id="wbi-tip-btn" class="wbi-btn wbi-btn-tip">💡 Tipp 1 anfordern (Beruf • dann 3 Pkt.)</button>
+            <div id="wbi-tips-area" style="margin-top:6px;"></div>
+          </div>
+
+          <div style="font-size:0.95rem; font-weight:700; margin-bottom:6px;">Wer ist auf diesem Bild zu sehen?</div>
+          <div id="wbi-opts" class="wbi-opts"></div>
+        </div>
+      </div>
+
+      <div id="wbi-res" style="display:none; background:#0f172a; border:1px solid #475569; border-radius:10px; padding:14px; margin-top:14px;">
+        <div id="wbi-res-title" style="font-size:1.15rem; font-weight:800; margin-bottom:6px;"></div>
+        <div id="wbi-res-bio" style="font-size:0.9rem; color:#cbd5e1; line-height:1.45; margin-bottom:12px;"></div>
+        <button type="button" id="wbi-next" class="wbi-btn">Weiter ➔</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. WINNER SCREEN -->
+  <div id="wbi-winner" class="wbi-scr" style="text-align:center; padding:24px 12px;">
+    <div style="font-size:4rem; margin-bottom:8px;">👑</div>
+    <h2 id="wbi-win-name" style="color:var(--acc); font-size:2rem; margin:0 0 8px;">Spieler 1</h2>
+    <p id="wbi-win-txt" style="color:#cbd5e1; margin-bottom:18px;"></p>
+    <div id="wbi-final-tbl" class="wbi-box" style="max-width:420px; margin:0 auto 20px;"></div>
+    <button type="button" id="wbi-restart" class="wbi-btn">Neues Spiel</button>
+  </div>
+</div>
+<script>
+(function() {
+  const CAT_QUERIES = {
+    all: "wd:Q33999 wd:Q10800557 wd:Q177220 wd:Q639669 wd:Q82955 wd:Q2066131 wd:Q901",
+    film: "wd:Q33999 wd:Q10800557 wd:Q2526255",
+    music: "wd:Q177220 wd:Q639669 wd:Q36834",
+    sport: "wd:Q2066131 wd:Q937857 wd:Q10833314",
+    politics: "wd:Q82955 wd:Q30461",
+    science: "wd:Q901 wd:Q1028181 wd:Q36180"
+  };
+
+  let poolCache = {};
+  let usedQids = new Set();
+  let pixelTimer = null;
+  let cfg = { cat: "all", choices: 6, target: 25 };
+  let st = {
+    players: [], curIdx: 0, streak: 0,
+    isTie: false, tieCands: [], tiePos: 0,
+    current: null, tipsUsed: 0, pixelPct: 0, answered: false
+  };
+
+  function showScr(id) {
+    document.querySelectorAll(".wbi-scr").forEach(e => e.classList.remove("act"));
+    document.getElementById(id).classList.add("act");
+  }
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = a.at(i); a[i] = a.at(j); a[j] = tmp;
+    }
+    return a;
+  }
+
+  document.getElementById("wbi-add-p").addEventListener("click", function() {
+    const list = document.getElementById("wbi-plist");
+    const inp = document.createElement("input");
+    inp.type = "text";
+    inp.className = "wbi-inp wbi-pin";
+    inp.value = "Spieler " + (list.children.length + 1);
+    list.appendChild(inp);
+  });
+
+  async function loadCelebPool(catKey) {
+    if (poolCache[catKey] && poolCache[catKey].length >= 25) return poolCache[catKey];
+    const occValues = CAT_QUERIES[catKey] || CAT_QUERIES.all;
+    const sparql = [
+      "SELECT DISTINCT ?person ?personLabel ?img ?occLabel ?countryLabel ?birth ?article WHERE {",
+      "  VALUES ?occ { " + occValues + " }",
+      "  ?person wdt:P31 wd:Q5; wdt:P106 ?occ; wdt:P18 ?img; wikibase:sitelinks ?links.",
+      "  FILTER(?links > 45)",
+      "  OPTIONAL { ?person wdt:P27 ?country. }",
+      "  OPTIONAL { ?person wdt:P569 ?birth. }",
+      "  ?article schema:about ?person; schema:isPartOf <https://" + "de.wikipedia.org" + "/>.",
+      "  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en\". }",
+      "} ORDER BY DESC(?links) LIMIT 160"
+    ].join("\n");
+
+    const ep = ["https:/", "query.wikidata.org", "sparql"].join("/");
+    const url = ep + "?format=json&query=" + encodeURIComponent(sparql);
+    const res = await fetch(url, { headers: { "Accept": "application/sparql-results+json" } });
+    if (!res.ok) throw new Error("Wikidata-Abfrage fehlgeschlagen (" + res.status + ").");
+    const data = await res.json();
+
+    const map = new Map();
+    (data.results.bindings || []).forEach(b => {
+      const qid = b.person.value.split("/").pop();
+      const name = b.personLabel ? b.personLabel.value : "";
+      if (!name || name.startsWith("Q")) return;
+      if (!map.has(qid)) {
+        const rawImg = b.img.value.replace(/^http:/, "https:");
+        const fileName = decodeURIComponent(rawImg.split("/").pop());
+        const thumbUrl = ["https:/", "commons.wikimedia.org", "wiki", "Special:FilePath", encodeURIComponent(fileName) + "?width=420"].join("/");
+        const wikiTitle = decodeURIComponent(b.article.value.split("/wiki/").pop());
+        const firstName = name.split(" ").at(0);
+        const birthYear = b.birth ? b.birth.value.slice(0, 4) : "";
+        map.set(qid, {
+          qid: qid,
+          name: name,
+          firstName: firstName,
+          imgUrl: thumbUrl,
+          wikiTitle: wikiTitle,
+          occ: b.occLabel ? b.occLabel.value : "Persönlichkeit",
+          country: b.countryLabel ? b.countryLabel.value : "International",
+          birthYear: birthYear
+        });
+      }
+    });
+
+    const list = Array.from(map.values());
+    poolCache[catKey] = list;
+    return list;
+  }
+
+  async function fetchWikiBio(wikiTitle) {
+    try {
+      const api = ["https:/", "de.wikipedia.org", "api", "rest_v1", "page", "summary", encodeURIComponent(wikiTitle)].join("/");
+      const res = await fetch(api);
+      if (!res.ok) return "";
+      const json = await res.json();
+      return json.extract || "";
+    } catch (e) {
+      return "";
+    }
+  }
+  function renderScoreboard() {
+    const sb = document.getElementById("wbi-scores");
+    sb.innerHTML = "";
+    st.players.forEach((p, i) => {
+      const div = document.createElement("div");
+      div.className = "wbi-pbadge" + (i === st.curIdx ? " cur" : "");
+      div.innerText = p.name + ": " + p.score + " / " + cfg.target;
+      sb.appendChild(div);
+    });
+  }
+
+  function updatePointsBadge() {
+    const basePts = Math.max(1, 4 - st.tipsUsed);
+    const bonusPts = (!st.answered && st.pixelPct < 50) ? 1 : 0;
+    const badge = document.getElementById("wbi-pts-badge");
+    const tag = document.getElementById("wbi-bonus-tag");
+
+    if (bonusPts > 0) {
+      badge.innerText = "Aktuell: " + basePts + " + 1 Bonus Pkt.";
+      tag.style.display = "block";
+    } else {
+      badge.innerText = "Aktuell: " + basePts + (basePts === 1 ? " Punkt" : " Punkte");
+      tag.style.display = "none";
+    }
+  }
+
+  function startPixelReveal(imgUrl) {
+    clearInterval(pixelTimer);
+    const canvas = document.getElementById("wbi-canvas");
+    const ctx = canvas.getContext("2d");
+    const off = document.createElement("canvas");
+    const offCtx = off.getContext("2d");
+
+    ctx.fillStyle = "#090d16";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = function() {
+      const startTime = Date.now();
+      const durationMs = 15000;
+
+      function drawStep() {
+        const elapsed = Date.now() - startTime;
+        const progress = st.answered ? 1 : Math.min(1, elapsed / durationMs);
+        st.pixelPct = Math.round(progress * 100);
+        updatePointsBadge();
+
+        const blocksW = Math.max(8, Math.round(8 + Math.pow(progress, 1.7) * 292));
+        const blocksH = Math.max(10, Math.round(blocksW * (4 / 3)));
+
+        off.width = blocksW;
+        off.height = blocksH;
+        offCtx.drawImage(img, 0, 0, blocksW, blocksH);
+
+        ctx.imageSmoothingEnabled = (progress >= 0.98);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(off, 0, 0, blocksW, blocksH, 0, 0, canvas.width, canvas.height);
+
+        if (progress >= 1 || st.answered) {
+          clearInterval(pixelTimer);
+        }
+      }
+
+      drawStep();
+      pixelTimer = setInterval(drawStep, 120);
+    };
+    img.onerror = function() {
+      loadNextCeleb();
+    };
+    img.src = imgUrl;
+  }
+
+  function updateTipButton() {
+    const btn = document.getElementById("wbi-tip-btn");
+    if (st.tipsUsed === 0) {
+      btn.disabled = false;
+      btn.innerText = "💡 Tipp 1 anfordern (Beruf • dann 3 Pkt.)";
+    } else if (st.tipsUsed === 1) {
+      btn.disabled = false;
+      btn.innerText = "💡 Tipp 2 anfordern (Land & Jahrgang • dann 2 Pkt.)";
+    } else if (st.tipsUsed === 2) {
+      btn.disabled = false;
+      btn.innerText = "💡 Tipp 3 anfordern (Vorname • dann 1 Pkt.)";
+    } else {
+      btn.disabled = true;
+      btn.innerText = "Alle 3 Tipps genutzt (1 Pkt.)";
+    }
+  }
+
+  document.getElementById("wbi-tip-btn").addEventListener("click", function() {
+    if (st.answered || st.tipsUsed >= 3 || !st.current) return;
+    st.tipsUsed += 1;
+    const area = document.getElementById("wbi-tips-area");
+    const pill = document.createElement("span");
+    pill.className = "wbi-tip-pill";
+
+    if (st.tipsUsed === 1) {
+      pill.innerText = "1. Beruf: " + st.current.occ;
+    } else if (st.tipsUsed === 2) {
+      const yr = st.current.birthYear ? " • Jahrgang " + st.current.birthYear : "";
+      pill.innerText = "2. Herkunft: " + st.current.country + yr;
+    } else if (st.tipsUsed === 3) {
+      pill.innerText = "3. Vorname: " + st.current.firstName;
+    }
+
+    area.appendChild(pill);
+    updateTipButton();
+    updatePointsBadge();
+  });
+  async function loadNextCeleb() {
+    clearInterval(pixelTimer);
+    st.tipsUsed = 0;
+    st.pixelPct = 0;
+    st.answered = false;
+
+    document.getElementById("wbi-res").style.display = "none";
+    document.getElementById("wbi-tips-area").innerHTML = "";
+    updateTipButton();
+    updatePointsBadge();
+
+    const curP = st.players.at(st.curIdx);
+    document.getElementById("wbi-turn").innerText = (st.isTie ? "⚡ " : "") + curP.name + " ist dran!";
+    document.getElementById("wbi-streak").innerText = "(Zug " + (st.streak + 1) + "/2)";
+    renderScoreboard();
+
+    const optsGrid = document.getElementById("wbi-opts");
+    optsGrid.innerHTML = "<div style='color:#94a3b8;'>Lade Persönlichkeit...</div>";
+
+    try {
+      const pool = await loadCelebPool(cfg.cat);
+      let avail = pool.filter(c => !usedQids.has(c.qid));
+      if (avail.length < cfg.choices) {
+        usedQids.clear();
+        avail = pool;
+      }
+
+      const target = avail.at(Math.floor(Math.random() * avail.length));
+      usedQids.add(target.qid);
+      st.current = target;
+
+      const distractors = shuffle(pool.filter(c => c.qid !== target.qid)).slice(0, cfg.choices - 1);
+      const choices = shuffle([{ name: target.name, ok: true }].concat(distractors.map(d => ({ name: d.name, ok: false }))));
+
+      optsGrid.innerHTML = "";
+      choices.forEach(ch => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "wbi-opt";
+        btn.innerText = ch.name;
+
+        let startY = 0, moved = false;
+        btn.addEventListener("touchstart", e => { if (e.touches && e.touches.length) { startY = e.touches.at(0).clientY; moved = false; } }, { passive: true });
+        btn.addEventListener("touchmove", e => { if (e.touches && e.touches.length && Math.abs(e.touches.at(0).clientY - startY) > 10) moved = true; }, { passive: true });
+        btn.addEventListener("click", e => {
+          if (moved) { moved = false; e.preventDefault(); return; }
+          handleGuess(ch, btn);
+        });
+        optsGrid.appendChild(btn);
+      });
+
+      startPixelReveal(target.imgUrl);
+    } catch (err) {
+      optsGrid.innerHTML = "<div style='color:#ef4444;'>" + err.message + "</div>";
+    }
+  }
+
+  async function handleGuess(ch, clickedBtn) {
+    if (st.answered) return;
+    const hadBonus = st.pixelPct < 50;
+    st.answered = true;
+    clearInterval(pixelTimer);
+
+    const allBtns = document.querySelectorAll("#wbi-opts .wbi-opt");
+    allBtns.forEach(b => { b.disabled = true; });
+    document.getElementById("wbi-tip-btn").disabled = true;
+
+    const canvas = document.getElementById("wbi-canvas");
+    const ctx = canvas.getContext("2d");
+    const fullImg = new Image();
+    fullImg.crossOrigin = "anonymous";
+    fullImg.onload = () => { ctx.imageSmoothingEnabled = true; ctx.drawImage(fullImg, 0, 0, canvas.width, canvas.height); };
+    fullImg.src = st.current.imgUrl;
+
+    const curP = st.players.at(st.curIdx);
+    const resBox = document.getElementById("wbi-res");
+    const resTit = document.getElementById("wbi-res-title");
+    const resBio = document.getElementById("wbi-res-bio");
+
+    if (ch.ok) {
+      clickedBtn.classList.add("ok");
+      const basePts = Math.max(1, 4 - st.tipsUsed);
+      const totalWon = basePts + (hadBonus ? 1 : 0);
+      curP.score += totalWon;
+      st.streak += 1;
+      renderScoreboard();
+
+      const bonusTxt = hadBonus ? " (inkl. +1 Pixel-Bonus!)" : "";
+      resTit.innerHTML = "<span style='color:#10b981;'>✔ Richtig! +" + totalWon + " Punkte" + bonusTxt + "</span>";
+    } else {
+      clickedBtn.classList.add("no");
+      allBtns.forEach(b => { if (b.innerText === st.current.name) b.classList.add("ok"); });
+      st.streak = 99;
+      resTit.innerHTML = "<span style='color:#ef4444;'>✘ Leider falsch! Gesucht war: " + st.current.name + "</span>";
+    }
+
+    resBio.innerText = "Lade Wikipedia-Kurzbiografie...";
+    resBox.style.display = "block";
+    const bio = await fetchWikiBio(st.current.wikiTitle);
+    resBio.innerText = bio || (st.current.name + " (" + st.current.occ + ", " + st.current.country + ")");
+  }
+
+  document.getElementById("wbi-next").addEventListener("click", function() {
+    if (!st.isTie && st.streak < 2) {
+      loadNextCeleb();
+      return;
+    }
+    st.streak = 0;
+
+    if (st.isTie) {
+      st.tiePos += 1;
+      if (st.tiePos < st.tieCands.length) {
+        st.curIdx = st.tieCands.at(st.tiePos);
+        loadNextCeleb();
+      } else {
+        evaluateRound();
+      }
+      return;
+    }
+
+    st.curIdx += 1;
+    if (st.curIdx < st.players.length) {
+      loadNextCeleb();
+    } else {
+      st.curIdx = 0;
+      evaluateRound();
+    }
+  });
+
+  document.getElementById("wbi-skip").addEventListener("click", function() {
+    loadNextCeleb();
+  });
+
+  function evaluateRound() {
+    const maxSc = Math.max.apply(null, st.players.map(p => p.score));
+    if (maxSc < cfg.target && !st.isTie) {
+      loadNextCeleb();
+      return;
+    }
+    const leaders = [];
+    st.players.forEach((p, idx) => { if (p.score === maxSc) leaders.push(idx); });
+
+    if (leaders.length === 1) {
+      showWinner(st.players.at(leaders.at(0)));
+    } else {
+      st.isTie = true;
+      st.tieCands = leaders;
+      st.tiePos = 0;
+      st.curIdx = leaders.at(0);
+      alert("⚡ STECHEN! Gleichstand an der Spitze – 1 Entscheidungs-Promi pro Person!");
+      loadNextCeleb();
+    }
+  }
+
+  function showWinner(winner) {
+    clearInterval(pixelTimer);
+    document.getElementById("wbi-win-name").innerText = winner.name;
+    document.getElementById("wbi-win-txt").innerText = winner.name + " gewinnt das Promi-Quiz mit " + winner.score + " Punkten!";
+    const tbl = document.getElementById("wbi-final-tbl");
+    tbl.innerHTML = "";
+    st.players.slice().sort((a, b) => b.score - a.score).forEach((p, i) => {
+      const row = document.createElement("div");
+      row.style.cssText = "display:flex; justify-content:space-between; padding:8px 6px; border-bottom:1px solid #334155;";
+      row.innerHTML = "<span>" + (i + 1) + ". " + p.name + "</span><strong>" + p.score + " Pkt.</strong>";
+      tbl.appendChild(row);
+    });
+    showScr("wbi-winner");
+  }
+
+  document.getElementById("wbi-start").addEventListener("click", function() {
+    const err = document.getElementById("wbi-err");
+    err.innerText = "";
+    const names = Array.from(document.querySelectorAll(".wbi-pin")).map(i => i.value.trim()).filter(v => v.length > 0);
+    if (names.length < 1) {
+      err.innerText = "Bitte mindestens 1 Spielernamen eintragen.";
+      return;
+    }
+    cfg = {
+      cat: document.getElementById("wbi-cat").value,
+      choices: parseInt(document.getElementById("wbi-choices").value) || 6,
+      target: parseInt(document.getElementById("wbi-target").value) || 25
+    };
+    st = {
+      players: names.map(n => ({ name: n, score: 0 })),
+      curIdx: 0, streak: 0, isTie: false, tieCands: [], tiePos: 0,
+      current: null, tipsUsed: 0, pixelPct: 0, answered: false
+    };
+    usedQids.clear();
+    showScr("wbi-game");
+    loadNextCeleb();
+  });
+
+  document.getElementById("wbi-restart").addEventListener("click", function() {
+    clearInterval(pixelTimer);
+    showScr("wbi-setup");
+  });
+})();
+</script>
+</body>
+</html>
+
