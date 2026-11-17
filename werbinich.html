@@ -217,7 +217,7 @@
         const json = await res.json();
         const pages = (json.query && json.query.pages) ? Object.values(json.query.pages) : [];
         pages.forEach(p => {
-            if (p.thumbnail && p.thumbnail.source && p.thumbnail.height >= p.thumbnail.width * 0.95 && !p.title.includes(":") && !p.title.includes("(")) {
+            if (p.thumbnail && p.thumbnail.source && p.thumbnail.height >= p.thumbnail.width * 1.1 && !/(band|group|team|cast|with|and|und|duo|trio|ensemble)/i.test(p.thumbnail.source) && !p.title.includes(":") && !p.title.includes("(")) {
             const parts = p.title.split(" ");
             if (parts.length >= 2 && !collected.has(p.title)) {
               const desc = p.description || "Bekannte Persönlichkeit";
@@ -295,9 +295,19 @@
     const img = new Image();
     img.crossOrigin = "anonymous";
     img.onload = function() {
-      if (img.naturalWidth > img.naturalHeight * 1.05) {
+      if (img.naturalWidth > img.naturalHeight * 0.95) {
         loadNextCeleb();
         return;
+      }
+      const targetRatio = canvas.width / canvas.height;
+      const imgRatio = img.naturalWidth / img.naturalHeight;
+      let sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
+      if (imgRatio > targetRatio) {
+        sw = img.naturalHeight * targetRatio;
+        sx = (img.naturalWidth - sw) / 2;
+      } else {
+        sh = img.naturalWidth / targetRatio;
+        sy = 0;
       }
       const startTime = Date.now();
       const durationMs = 15000;
@@ -313,7 +323,7 @@
 
         off.width = blocksW;
         off.height = blocksH;
-        offCtx.drawImage(img, 0, 0, blocksW, blocksH);
+        offCtx.drawImage(img, sx, sy, sw, sh, 0, 0, blocksW, blocksH);
 
         ctx.imageSmoothingEnabled = (progress >= 0.98);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
