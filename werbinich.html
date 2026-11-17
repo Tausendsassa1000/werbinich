@@ -169,7 +169,7 @@
   };
 
   let poolCache = {};
-  let usedTitles = new Set();
+  let usedQids = new Set();
   let pixelTimer = null;
   let cfg = { cat: "all", choices: 6, target: 25 };
   let st = {
@@ -387,14 +387,14 @@
 
     try {
       const pool = await loadCelebPool(cfg.cat);
-      let avail = pool.filter(c => !usedTitles.has(c.qid));
+      let avail = pool.filter(c => !usedQids.has(c.qid));
       if (avail.length < cfg.choices) {
-        usedTitles.clear();
+        usedQids.clear();
         avail = pool;
       }
 
       const target = avail.at(Math.floor(Math.random() * avail.length));
-      usedTitles.add(target.qid);
+      usedQids.add(target.qid);
       st.current = target;
 
       const distractors = shuffle(pool.filter(c => c.qid !== target.qid)).slice(0, cfg.choices - 1);
