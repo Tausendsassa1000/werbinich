@@ -159,13 +159,13 @@
 </div>
 <script>
 (function() {
-  const CAT_SOURCES = {
-    all: ["Filmschauspieler", "Pop-Sänger", "Tennisspieler", "Fußballspieler", "Bundeskanzler_(Deutschland)", "Bundesrat_(Schweiz)", "Physiker"],
-    film: ["Filmschauspieler", "Filmregisseur", "Oscarpreisträger", "Schauspieler_(Deutschland)"],
-    music: ["Pop-Sänger", "Rocksänger", "Schlagersänger", "Komponist", "Pianist"],
-    sport: ["Olympiasieger", "Weltsportler_des_Jahres", "Weltfußballer", "Tennisspieler", "Formel-1-Rennfahrer", "Skirennläufer", "Boxweltmeister"],
-    politics: ["Bundeskanzler_(Deutschland)", "Bundesrat_(Schweiz)", "Bundeskanzler_(Österreich)", "Präsident_der_Vereinigten_Staaten", "Politiker_(Deutschland)"],
-    science: ["Physiker", "Nobelpreisträger_für_Physik", "Maler", "Schriftsteller", "Erfinder"]
+  const CAT_SEARCHES = {
+    all: ["Schauspieler Oscar", "Sänger Musiker", "Olympiasieger Sportler", "Bundeskanzler Politiker", "Physiker Nobelpreis"],
+    film: ["Filmschauspieler Oscar", "Filmregisseur Hollywood", "Schauspieler Deutschland"],
+    music: ["Pop-Sänger Album", "Rocksänger Band", "Komponist Dirigent", "Schlagersänger"],
+    sport: ["Fußballweltmeister Nationalspieler", "Tennisspieler Grand Slam", "Formel-1-Weltmeister", "Olympiasieger Skirennläufer", "Leichtathletik Weltmeister"],
+    politics: ["Bundeskanzler Deutschland", "Bundesrat Schweiz", "Präsident Vereinigte Staaten", "Bundeskanzler Österreich"],
+    science: ["Nobelpreis Physik", "Nobelpreis Chemie", "Maler Kunstgeschichte", "Schriftsteller Literatur"]
   };
 
   let poolCache = {};
@@ -203,16 +203,15 @@
 
   async function loadCelebPool(catKey) {
     if (poolCache[catKey] && poolCache[catKey].length >= 40) return poolCache[catKey];
-    const cats = CAT_SOURCES[catKey] || CAT_SOURCES.all;
+    const queries = CAT_SEARCHES[catKey] || CAT_SEARCHES.all;
     const wikiApi = "https://de." + "wiki" + "pedia.org/w/api.php";
     const collected = new Map();
-    const letters = ["A", "B", "D", "F", "G", "H", "K", "L", "M", "P", "R", "S", "T", "W"];
 
-    for (let i = 0; i < cats.length; i++) {
-      const cName = cats.at(i);
-      const randLetter = letters.at(Math.floor(Math.random() * letters.length));
-      const url = wikiApi + "?action=query&generator=categorymembers&gcmtitle=Kategorie:" + encodeURIComponent(cName) +
-        "&gcmtype=page&gcmlimit=100&gcmstartsortkeyprefix=" + randLetter +
+    for (let i = 0; i < queries.length; i++) {
+      const q = queries.at(i);
+      const randOffset = Math.floor(Math.random() * 40);
+      const url = wikiApi + "?action=query&generator=search&gsrsearch=" + encodeURIComponent(q) +
+        "&gsrnamespace=0&gsrlimit=45&gsroffset=" + randOffset +
         "&prop=pageimages|description&piprop=thumbnail&pithumbsize=420&format=json&origin=*";
       try {
         const res = await fetch(url);
@@ -220,10 +219,11 @@
         const json = await res.json();
         const pages = (json.query && json.query.pages) ? Object.values(json.query.pages) : [];
         pages.forEach(p => {
-          if (p.thumbnail && p.thumbnail.source && p.thumbnail.height >= p.thumbnail.width * 0.85 && !/(band|group|team|cast|with|and|und|duo|trio|ensemble)/i.test(p.thumbnail.source) && !p.title.includes(":") && !p.title.includes("(")) {
+          const desc = p.description || "";
+          const hasBirthYear = /\b(18|19|20)\d{2}\b/.test(desc);
+          if (hasBirthYear && p.thumbnail && p.thumbnail.source && p.thumbnail.height >= p.thumbnail.width * 0.85 && !/(band|group|team|cast|with|and|und|duo|trio|ensemble)/i.test(p.thumbnail.source) && !p.title.includes(":") && !p.title.includes("(")) {
             const parts = p.title.split(" ");
-            if (parts.length >= 2 && !collected.has(p.title)) {
-              const desc = p.description || "Bekannte Persönlichkeit";
+            if (parts.length >= 2 && parts.length <= 4 && !collected.has(p.title)) {
               const yearMatch = desc.match(/\b(18|19|20)\d{2}\b/);
               collected.set(p.title, {
                 qid: String(p.pageid),
