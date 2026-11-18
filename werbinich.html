@@ -220,50 +220,59 @@
   });
 
   async function loadCelebPool(catKey) {
-    if (poolCache[catKey] && poolCache[catKey].length >= 50) return poolCache[catKey];
+    if (poolCache[catKey] && poolCache[catKey].m.length >= 15 && poolCache[catKey].f.length >= 15) {
+      return poolCache[catKey];
+    }
     const catObj = CAT_SEARCHES[catKey] || CAT_SEARCHES.all;
-    const queries = shuffle(catObj.m).slice(0, 3).concat(shuffle(catObj.f).slice(0, 3));
     const wikiApi = "https://de." + "wiki" + "pedia.org/w/api.php";
-    const collected = new Map();
-    const nonPersonWords = /(Buch|Roman|Sachbuch|Film|Spielfilm|Dokumentarfilm|Album|Lied|Single|Zeitschrift|Magazin|Verein|Club|Band|Mannschaft|Gemälde|Skulptur|Werk)/i;
+    const nonPersonWords = /(Buch|Roman|Sachbuch|Film|Spielfilm|Dokumentarfilm|Album|Lied|Single|Zeitschrift|Magazin|Verein|Club|Band|Mannschaft|Gemälde|Skulptur|Werk|Wappen|Pokal|Trophäe|Liga)/i;
 
-    for (let i = 0; i < queries.length; i++) {
-      const q = queries.at(i) + " geboren";
-      const randOffset = Math.floor(Math.random() * 45);
-      const url = wikiApi + "?action=query&generator=search&gsrsearch=" + encodeURIComponent(q) +
-        "&gsrnamespace=0&gsrlimit=45&gsroffset=" + randOffset +
-        "&prop=pageimages|description&piprop=thumbnail&pithumbsize=420&format=json&origin=*";
-      try {
-        const res = await fetch(url);
-        if (!res.ok) continue;
-        const json = await res.json();
-        const pages = (json.query && json.query.pages) ? Object.values(json.query.pages) : [];
-        pages.forEach(p => {
-          const desc = p.description || "";
-          if (desc.length > 2 && !nonPersonWords.test(desc) && p.thumbnail && p.thumbnail.source && p.thumbnail.height >= p.thumbnail.width * 0.72 && !/(band|group|team|cast|with|and|und|duo|trio|ensemble|cover|book|poster)/i.test(p.thumbnail.source) && !p.title.includes(":") && !p.title.includes("(")) {
-            const parts = p.title.split(" ");
-            if (parts.length >= 2 && parts.length <= 3 && !collected.has(p.title)) {
-              const yearMatch = desc.match(/\b(18|19|20)\d{2}\b/);
-              collected.set(p.title, {
-                qid: String(p.pageid),
-                name: p.title,
-                firstName: parts.at(0),
-                wikiTitle: p.title,
-                imgUrl: p.thumbnail.source,
-                occ: desc.split(",").at(0) || queries.at(i),
-                country: desc,
-                birthYear: yearMatch ? yearMatch.at(0) : ""
-              });
+    async function fetchGenderList(termsList, limitCount) {
+      const map = new Map();
+      const pickedTerms = shuffle(termsList).slice(0, limitCount);
+      for (let i = 0; i < pickedTerms.length; i++) {
+        const term = pickedTerms.at(i);
+        const q = term + " geboren";
+        const randOffset = Math.floor(Math.random() * 40);
+        const url = wikiApi + "?action=query&generator=search&gsrsearch=" + encodeURIComponent(q) +
+          "&gsrnamespace=0&gsrlimit=45&gsroffset=" + randOffset +
+          "&prop=pageimages|description&piprop=thumbnail&pithumbsize=420&format=json&origin=*";
+        try {
+          const res = await fetch(url);
+          if (!res.ok) continue;
+          const json = await res.json();
+          const pages = (json.query && json.query.pages) ? Object.values(json.query.pages) : [];
+          pages.forEach(p => {
+            const desc = p.description || "";
+            const src = (p.thumbnail && p.thumbnail.source) ? p.thumbnail.source : "";
+            const isPhoto = src && !/\.svg/i.test(src) && !/(band|group|team|cast|with|and|und|duo|trio|ensemble|cover|book|poster|logo|wappen|coat|trophy|pokal|flag)/i.test(src);
+            if (desc.length > 2 && !nonPersonWords.test(desc) && isPhoto && p.thumbnail.height >= p.thumbnail.width * 0.72 && !p.title.includes(":") && !p.title.includes("(")) {
+              const parts = p.title.split(" ");
+              if (parts.length >= 2 && parts.length <= 3 && !map.has(p.title)) {
+                const yearMatch = desc.match(/\b(18|19|20)\d{2}\b/);
+                map.set(p.title, {
+                  qid: String(p.pageid),
+                  name: p.title,
+                  firstName: parts.at(0),
+                  wikiTitle: p.title,
+                  imgUrl: src,
+                  occ: desc.split(",").at(0) || term,
+                  country: desc,
+                  birthYear: yearMatch ? yearMatch.at(0) : ""
+                });
+              }
             }
-          }
-        });
-      } catch (e) {}
+          });
+        } catch (e) {}
+      }
+      return Array.from(map.values());
     }
 
-    const list = Array.from(collected.values());
-    if (list.length < 6) throw new Error("Zu wenige Einträge geladen – bitte erneut versuchen.");
-    poolCache[catKey] = list;
-    return list;
+    const listM = await fetchGenderList(catObj.m, 3);
+    const listF = await fetchGenderList(catObj.f, 5);
+    if (listM.length < 4 || listF.length < 4) throw new Error("Zu wenige Einträge geladen – bitte erneut versuchen.");
+    poolCache[catKey] = { m: listM, f: listF };
+    return poolCache[catKey];
   }
   async function fetchWikiSummary(wikiTitle) {
     try {
@@ -421,20 +430,27 @@
     optsGrid.innerHTML = "<div style='color:#94a3b8;'>Lade Persönlichkeit...</div>";
 
     try {
-      const pool = await loadCelebPool(cfg.cat);
-      let avail = pool.filter(c => !usedQids.has(c.qid));
-      if (avail.length < cfg.choices) {
+            const pools = await loadCelebPool(cfg.cat);
+      const wantFemale = (usedQids.size % 2 === 0);
+      const primaryPool = wantFemale ? pools.f : pools.m;
+      const secondaryPool = wantFemale ? pools.m : pools.f;
+
+      let avail = primaryPool.filter(c => !usedQids.has(c.qid));
+      if (avail.length < 2) {
         usedQids.clear();
-        avail = pool;
+        avail = primaryPool;
       }
 
       const target = avail.at(Math.floor(Math.random() * avail.length));
       usedQids.add(target.qid);
       st.current = target;
 
-      const distractors = shuffle(pool.filter(c => c.qid !== target.qid)).slice(0, cfg.choices - 1);
+      const halfWrong = Math.floor((cfg.choices - 1) / 2);
+      const otherWrong = (cfg.choices - 1) - halfWrong;
+      const wrongSame = shuffle(primaryPool.filter(c => c.qid !== target.qid)).slice(0, halfWrong);
+      const wrongOther = shuffle(secondaryPool).slice(0, otherWrong);
+      const distractors = wrongSame.concat(wrongOther);
       const choices = shuffle([{ name: target.name, ok: true }].concat(distractors.map(d => ({ name: d.name, ok: false }))));
-
       optsGrid.innerHTML = "";
       choices.forEach(ch => {
         const btn = document.createElement("button");
