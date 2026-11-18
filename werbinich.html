@@ -160,31 +160,30 @@
 <script>
 (function() {
   const CAT_SEARCHES = {
-    all: [
-      "Schauspieler", "Schauspielerin", "Sänger", "Sängerin", "Fußballspieler", "Tennisspielerin",
-      "Radrennfahrer", "Skirennläuferin", "Bundeskanzler", "Künstler", "Künstlerin", "Physiker"
-    ],
-    film: [
-      "Schauspieler", "Schauspielerin", "Filmschauspieler", "Filmschauspielerin",
-      "Filmregisseur", "Filmregisseurin", "Drehbuchautor", "Drehbuchautorin"
-    ],
-    music: [
-      "Sänger", "Sängerin", "Pop-Sängerin", "Rocksänger", "Rapper", "Rapperin",
-      "Gitarrist", "Schlagzeuger", "Bassist", "Keyboarder", "Komponist", "Pianistin"
-    ],
-    sport: [
-      "Fußballspieler", "Fußballspielerin", "Torhüter", "Torhüterin", "Tennisspieler", "Tennisspielerin",
-      "Radrennfahrer", "Radrennfahrerin", "Skirennläufer", "Skirennläuferin", "Formel-1-Rennfahrer",
-      "Leichtathlet", "Leichtathletin", "Schwimmer", "Schwimmerin", "Boxer", "Eishockeyspieler"
-    ],
-    politics: [
-      "Bundeskanzler", "Bundeskanzlerin", "Bundesrat", "Bundesrätin", "Politiker", "Politikerin",
-      "Ministerpräsident", "Ministerpräsidentin", "Staatspräsident", "Außenministerin"
-    ],
-    science: [
-      "Künstler", "Künstlerin", "Maler", "Malerin", "Bildhauer", "Bildhauerin", "Architekt",
-      "Physiker", "Physikerin", "Chemiker", "Schriftsteller", "Schriftstellerin", "Erfinder"
-    ]
+    all: {
+      m: ["Schauspieler", "Sänger", "Fußballspieler", "Tennisspieler", "Radrennfahrer", "Bundeskanzler", "Künstler", "Physiker"],
+      f: ["Schauspielerin", "Sängerin", "Fußballspielerin", "Tennisspielerin", "Skirennläuferin", "Bundeskanzlerin", "Künstlerin", "Physikerin"]
+    },
+    film: {
+      m: ["Schauspieler", "Filmschauspieler", "Filmregisseur", "Drehbuchautor"],
+      f: ["Schauspielerin", "Filmschauspielerin", "Filmregisseurin", "Drehbuchautorin"]
+    },
+    music: {
+      m: ["Sänger", "Rocksänger", "Rapper", "Gitarrist", "Schlagzeuger", "Komponist"],
+      f: ["Sängerin", "Pop-Sängerin", "Rapperin", "Pianistin", "Komponistin", "Musikerin"]
+    },
+    sport: {
+      m: ["Fußballspieler", "Torhüter", "Tennisspieler", "Radrennfahrer", "Skirennläufer", "Formel-1-Rennfahrer", "Leichtathlet", "Schwimmer"],
+      f: ["Fußballspielerin", "Torhüterin", "Tennisspielerin", "Radrennfahrerin", "Skirennläuferin", "Leichtathletin", "Schwimmerin", "Biathletin"]
+    },
+    politics: {
+      m: ["Bundeskanzler", "Bundesrat", "Politiker", "Ministerpräsident", "Staatspräsident"],
+      f: ["Bundeskanzlerin", "Bundesrätin", "Politikerin", "Ministerpräsidentin", "Außenministerin"]
+    },
+    science: {
+      m: ["Künstler", "Maler", "Bildhauer", "Architekt", "Physiker", "Schriftsteller"],
+      f: ["Künstlerin", "Malerin", "Bildhauerin", "Architektin", "Physikerin", "Schriftstellerin"]
+    }
   };
 
   let poolCache = {};
@@ -222,15 +221,17 @@
 
   async function loadCelebPool(catKey) {
     if (poolCache[catKey] && poolCache[catKey].length >= 50) return poolCache[catKey];
-    const queries = shuffle(CAT_SEARCHES[catKey] || CAT_SEARCHES.all).slice(0, 7);
+    const catObj = CAT_SEARCHES[catKey] || CAT_SEARCHES.all;
+    const queries = shuffle(catObj.m).slice(0, 3).concat(shuffle(catObj.f).slice(0, 3));
     const wikiApi = "https://de." + "wiki" + "pedia.org/w/api.php";
     const collected = new Map();
+    const nonPersonWords = /(Buch|Roman|Sachbuch|Film|Spielfilm|Dokumentarfilm|Album|Lied|Single|Zeitschrift|Magazin|Verein|Club|Band|Mannschaft|Gemälde|Skulptur|Werk)/i;
 
     for (let i = 0; i < queries.length; i++) {
-      const q = queries.at(i);
-      const randOffset = Math.floor(Math.random() * 60);
+      const q = queries.at(i) + " geboren";
+      const randOffset = Math.floor(Math.random() * 45);
       const url = wikiApi + "?action=query&generator=search&gsrsearch=" + encodeURIComponent(q) +
-        "&gsrnamespace=0&gsrlimit=40&gsroffset=" + randOffset +
+        "&gsrnamespace=0&gsrlimit=45&gsroffset=" + randOffset +
         "&prop=pageimages|description&piprop=thumbnail&pithumbsize=420&format=json&origin=*";
       try {
         const res = await fetch(url);
@@ -239,7 +240,7 @@
         const pages = (json.query && json.query.pages) ? Object.values(json.query.pages) : [];
         pages.forEach(p => {
           const desc = p.description || "";
-          if (desc.length > 2 && p.thumbnail && p.thumbnail.source && p.thumbnail.height >= p.thumbnail.width * 0.72 && !/(band|group|team|cast|with|and|und|duo|trio|ensemble)/i.test(p.thumbnail.source) && !p.title.includes(":") && !p.title.includes("(")) {
+          if (desc.length > 2 && !nonPersonWords.test(desc) && p.thumbnail && p.thumbnail.source && p.thumbnail.height >= p.thumbnail.width * 0.72 && !/(band|group|team|cast|with|and|und|duo|trio|ensemble|cover|book|poster)/i.test(p.thumbnail.source) && !p.title.includes(":") && !p.title.includes("(")) {
             const parts = p.title.split(" ");
             if (parts.length >= 2 && parts.length <= 3 && !collected.has(p.title)) {
               const yearMatch = desc.match(/\b(18|19|20)\d{2}\b/);
@@ -249,7 +250,7 @@
                 firstName: parts.at(0),
                 wikiTitle: p.title,
                 imgUrl: p.thumbnail.source,
-                occ: desc.split(",").at(0) || q,
+                occ: desc.split(",").at(0) || queries.at(i),
                 country: desc,
                 birthYear: yearMatch ? yearMatch.at(0) : ""
               });
