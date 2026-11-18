@@ -70,7 +70,7 @@
             <option value="music">Musik &amp; Gesang</option>
             <option value="sport">Sport</option>
             <option value="politics">Politik &amp; Geschichte</option>
-            <option value="science">Wissenschaft &amp; Kunst</option>
+            <option value="science">Künstler &amp; Wissenschaft</option>
           </select>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
@@ -160,12 +160,30 @@
 <script>
 (function() {
   const CAT_SEARCHES = {
-    all: ["Schauspieler Oscar", "Sänger Musiker", "Olympiasieger Sportler", "Bundeskanzler Politiker", "Physiker Nobelpreis"],
-    film: ["Filmschauspieler Oscar", "Filmregisseur Hollywood", "Schauspieler Deutschland"],
-    music: ["Pop-Sänger Album", "Rocksänger Band", "Komponist Dirigent", "Schlagersänger"],
-    sport: ["Fußballweltmeister Nationalspieler", "Tennisspieler Grand Slam", "Formel-1-Weltmeister", "Olympiasieger Skirennläufer", "Leichtathletik Weltmeister"],
-    politics: ["Bundeskanzler Deutschland", "Bundesrat Schweiz", "Präsident Vereinigte Staaten", "Bundeskanzler Österreich"],
-    science: ["Nobelpreis Physik", "Nobelpreis Chemie", "Maler Kunstgeschichte", "Schriftsteller Literatur"]
+    all: [
+      "Schauspielerin Film", "Sängerin Pop", "Tennisspielerin Grand Slam", "Fußballspieler Nationalspieler",
+      "Bundeskanzler Politiker", "Künstlerin Malerin", "Physiker Nobelpreis", "Skirennläuferin Olympiasiegerin"
+    ],
+    film: [
+      "Schauspieler Oscar", "Schauspielerin Oscar", "Filmregisseur Hollywood",
+      "Filmregisseurin", "Drehbuchautor Film", "Schauspielerin Deutschland"
+    ],
+    music: [
+      "Sängerin Pop", "Rocksänger Band", "Rapper Hip-Hop", "Rapperin",
+      "Gitarrist Band", "Schlagzeuger Band", "Komponist Dirigent", "Pianistin Konzert"
+    ],
+    sport: [
+      "Fußballspieler Torhüter", "Fußballspielerin Nationalspielerin", "Tennisspieler Grand Slam", "Tennisspielerin WTA",
+      "Radrennfahrer Tour de France", "Skirennläuferin Weltcup", "Formel-1-Rennfahrer", "Leichtathletin Olympiasiegerin", "Schwimmerin Olympiasiegerin"
+    ],
+    politics: [
+      "Bundeskanzler Deutschland", "Bundeskanzlerin Deutschland", "Bundesrat Schweiz", "Bundesrätin Schweiz",
+      "Präsident Vereinigte Staaten", "Politikerin Ministerin", "Bundeskanzler Österreich"
+    ],
+    science: [
+      "Künstler Maler", "Künstlerin Malerin", "Bildhauer Kunst", "Architekt Bauwerk",
+      "Physiker Nobelpreis", "Chemikerin Nobelpreis", "Schriftstellerin Literatur", "Erfinder Technik"
+    ]
   };
 
   let poolCache = {};
@@ -202,16 +220,17 @@
   });
 
   async function loadCelebPool(catKey) {
-    if (poolCache[catKey] && poolCache[catKey].length >= 40) return poolCache[catKey];
+    if (poolCache[catKey] && poolCache[catKey].length >= 50) return poolCache[catKey];
     const queries = CAT_SEARCHES[catKey] || CAT_SEARCHES.all;
     const wikiApi = "https://de." + "wiki" + "pedia.org/w/api.php";
     const collected = new Map();
+    const excludeWords = /(Verein|Club|Album|Lied|Film|Band|Mannschaft|Olympische|Meisterschaft|Stadion|Preis|Gebäude|Partei|Gemeinde|Stadt)/i;
 
     for (let i = 0; i < queries.length; i++) {
       const q = queries.at(i);
-      const randOffset = Math.floor(Math.random() * 40);
+      const randOffset = Math.floor(Math.random() * 25);
       const url = wikiApi + "?action=query&generator=search&gsrsearch=" + encodeURIComponent(q) +
-        "&gsrnamespace=0&gsrlimit=45&gsroffset=" + randOffset +
+        "&gsrnamespace=0&gsrlimit=40&gsroffset=" + randOffset +
         "&prop=pageimages|description&piprop=thumbnail&pithumbsize=420&format=json&origin=*";
       try {
         const res = await fetch(url);
@@ -220,8 +239,8 @@
         const pages = (json.query && json.query.pages) ? Object.values(json.query.pages) : [];
         pages.forEach(p => {
           const desc = p.description || "";
-          const hasBirthYear = /\b(18|19|20)\d{2}\b/.test(desc);
-          if (hasBirthYear && p.thumbnail && p.thumbnail.source && p.thumbnail.height >= p.thumbnail.width * 0.85 && !/(band|group|team|cast|with|and|und|duo|trio|ensemble)/i.test(p.thumbnail.source) && !p.title.includes(":") && !p.title.includes("(")) {
+          const isPerson = desc.length > 3 && !excludeWords.test(desc);
+          if (isPerson && p.thumbnail && p.thumbnail.source && p.thumbnail.height >= p.thumbnail.width * 0.85 && !/(band|group|team|cast|with|and|und|duo|trio|ensemble)/i.test(p.thumbnail.source) && !p.title.includes(":") && !p.title.includes("(")) {
             const parts = p.title.split(" ");
             if (parts.length >= 2 && parts.length <= 4 && !collected.has(p.title)) {
               const yearMatch = desc.match(/\b(18|19|20)\d{2}\b/);
