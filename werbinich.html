@@ -34,7 +34,7 @@
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
   .field-lbl { display: block; font-size: 0.78rem; font-weight: 700; color: var(--mut); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
   .ka2-inp, .ka2-sel { width: 100%; padding: 9px 12px; border-radius: 10px; background: var(--bg); color: var(--txt); border: 1px solid var(--line); font-size: 0.92rem; }
-  .ka2-sel { -webkit-appearance: none; appearance: none; padding-right: 30px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23fbbf24' d='M2 4l4 4 4-4z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
+  .ka2-sel { -webkit-appearance: none; appearance: none; padding-right: 30px; background-image: linear-gradient(45deg, transparent 50%, #fbbf24 50%), linear-gradient(135deg, #fbbf24 50%, transparent 50%); background-position: calc(100% - 15px) 52%, calc(100% - 10px) 52%; background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; }
   .p-names-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
   .btn-gold { background: var(--gold); color: #0f172a; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 800; font-size: 1rem; cursor: pointer; width: 100%; }
   .btn-gold:disabled { opacity: 0.45; cursor: not-allowed; }
@@ -198,7 +198,7 @@
       <div class="hud">
         <div class="hud-left">
           <div id="wbi-turn-badge" class="badge badge-gold">Spieler 1 (Zug 1/2)</div>
-          <button type="button" id="wbi-tip-btn" class="tip-btn">★ Tipp (2 Pkt.)</button>
+          <button type="button" id="wbi-tip-btn" class="tip-btn">★ 50:50 Joker (2 Pkt.)</button>
         </div>
 
         <div class="hud-right">
@@ -502,17 +502,23 @@
     if (st.tipsUsed === 0) {
       btn.disabled = false;
       btn.style.opacity = "1";
-      btn.innerText = "★ Tipp (2 Pkt.)";
+      btn.innerText = "★ 50:50 Joker (2 Pkt.)";
     } else {
       btn.disabled = true;
-      btn.style.opacity = "1";
-      btn.innerText = "Vorname: " + (st.current ? st.current.firstName : "");
+      btn.style.opacity = "0.65";
+      btn.innerText = "✓ 50:50 aktiv";
     }
   }
 
   document.getElementById("wbi-tip-btn").addEventListener("click", function() {
     if (st.answered || st.tipsUsed >= 1 || !st.current) return;
     st.tipsUsed = 1;
+    const wrongBtns = Array.from(document.querySelectorAll("#wbi-opts .opt-btn")).filter(b => b.innerText !== st.current.name);
+    const removeCount = Math.floor(cfg.choices / 2);
+    shuffle(wrongBtns).slice(0, removeCount).forEach(b => {
+      b.disabled = true;
+      b.style.visibility = "hidden";
+    });
     updateTipButton();
     updatePointsBadge();
   });
