@@ -70,12 +70,13 @@
     #gameRoot { min-height: auto; margin: 6px auto; padding: 10px; border-radius: 14px; }
     #gameRoot.fullscreen-play { justify-content: flex-start; padding: 8px 10px; }
     .grid-2 { grid-template-columns: 1fr; gap: 8px; }
-    .stage { height: auto; flex-direction: column-reverse; padding: 6px; gap: 6px; }
-    .stage canvas { height: 25dvh; max-height: 205px; width: 100%; }
-    .hud { position: static; width: 100%; padding: 0; }
+    .stage { height: auto; flex-direction: column; padding: 6px; gap: 5px; }
+    .stage canvas { height: 24dvh; max-height: 195px; width: 100%; order: 2; }
+    .hud { position: static; width: 100%; padding: 0; order: 1; }
     .hud-left, .hud-right { gap: 3px; }
     .badge, .tip-btn { font-size: 0.72rem; padding: 3px 7px; }
     .tip-pill { font-size: 0.7rem; max-width: 175px; }
+    .bonus-bar { order: 3; width: 100%; height: 22px; display: flex; align-items: center; justify-content: center; }
     .opt-btn { padding: 8px 9px; font-size: 0.8rem; }
   }
 
@@ -195,9 +196,11 @@
         </div>
         <div class="hud-right">
           <div id="wbi-pts-badge" class="badge badge-ok">4 + 1 Bonus Pkt.</div>
-          <div id="wbi-bonus-tag" class="badge badge-gold">★ Pixel-Bonus aktiv</div>
           <button type="button" id="wbi-skip" class="btn-sec" style="padding:4px 8px; font-size:0.74rem;">↺ Überspringen</button>
         </div>
+      </div>
+      <div class="bonus-bar">
+        <div id="wbi-bonus-tag" class="badge badge-gold">★ Pixel-Bonus aktiv</div>
       </div>
     </div>
 
@@ -419,11 +422,12 @@
     const tag = document.getElementById("wbi-bonus-tag");
     if (bonusPts > 0) {
       badge.innerText = basePts + " + 1 Bonus Pkt.";
-      tag.style.display = "block";
+      tag.style.visibility = "visible";
     } else {
       badge.innerText = basePts + (basePts === 1 ? " Punkt" : " Punkte");
-      tag.style.display = "none";
+      tag.style.visibility = "hidden";
     }
+
   }
 
   function startPixelReveal(imgUrl) {
