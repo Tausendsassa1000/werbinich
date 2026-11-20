@@ -20,9 +20,10 @@
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     max-width: none; min-height: 100dvh; margin: 0; border-radius: 0;
     z-index: 2147483647; overscroll-behavior: none; touch-action: manipulation;
-    display: flex; flex-direction: column; justify-content: center;
-    padding: 12px 18px; overflow: hidden;
+    display: flex; flex-direction: column; justify-content: flex-start;
+    padding: 14px 18px; overflow: hidden;
   }
+
   .ka2-bar { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px;
    margin-bottom: 12px; border-bottom: 1px solid var(--line); gap: 8px; }
   .ka2-brand { display: flex; align-items: center; gap: 8px; font-size: 0.84rem; font-weight: 700; color: var(--mut); }
@@ -69,9 +70,15 @@
     #gameRoot { min-height: auto; margin: 6px auto; padding: 10px; border-radius: 14px; }
     #gameRoot.fullscreen-play { justify-content: flex-start; padding: 8px 10px; }
     .grid-2 { grid-template-columns: 1fr; gap: 8px; }
-    .stage { height: 28dvh; max-height: 220px; }
+    .stage { height: auto; flex-direction: column-reverse; padding: 6px; gap: 6px; }
+    .stage canvas { height: 25dvh; max-height: 205px; width: 100%; }
+    .hud { position: static; width: 100%; padding: 0; }
+    .hud-left, .hud-right { gap: 3px; }
+    .badge, .tip-btn { font-size: 0.72rem; padding: 3px 7px; }
+    .tip-pill { font-size: 0.7rem; max-width: 175px; }
     .opt-btn { padding: 8px 9px; font-size: 0.8rem; }
   }
+
   @media (orientation: landscape) and (max-height: 460px) and (pointer: coarse) {
     #gameRoot.fullscreen-play .rotate-hint { display: flex; }
   }
@@ -410,7 +417,6 @@
     const bonusPts = (!st.answered && st.pixelPct < 50) ? 1 : 0;
     const badge = document.getElementById("wbi-pts-badge");
     const tag = document.getElementById("wbi-bonus-tag");
-
     if (bonusPts > 0) {
       badge.innerText = basePts + " + 1 Bonus Pkt.";
       tag.style.display = "block";
