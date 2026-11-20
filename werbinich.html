@@ -50,7 +50,9 @@
   .stage canvas { width: 100%; height: 100%; object-fit: contain; display: block; image-rendering: pixelated; }
   .hud { position: absolute; top: 8px; left: 8px; right: 8px; display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; pointer-events: none; z-index: 2; }
   .hud-left, .hud-right { display: flex; flex-direction: column; gap: 4px; pointer-events: auto; }
-  .hud-right { align-items: flex-end; }
+  .hud-right { align-items: stretch; min-width: 122px; text-align: center; }
+  .hud-right .badge, .hud-right .btn-sec { width: 100%; text-align: center; white-space: nowrap; }
+  .bonus-bar { position: absolute; bottom: 8px; right: 8px; z-index: 2; pointer-events: none; }
   .badge { background: rgba(15,23,42,0.86); border: 1px solid var(--line); color: var(--txt); padding: 4px 9px; border-radius: 8px; font-size: 0.78rem; font-weight: 700; backdrop-filter: blur(4px); }
   .badge-gold { border-color: var(--gold); color: var(--gold); }
   .badge-ok { border-color: var(--ok); color: #86efac; }
@@ -68,16 +70,21 @@
   .rotate-hint { display: none; position: fixed; inset: 0; background: #0f172a; color: var(--gold); z-index: 2147483647; align-items: center; justify-content: center; text-align: center; padding: 20px; font-weight: 800; }
   @media (max-width: 600px) {
     #gameRoot { min-height: auto; margin: 6px auto; padding: 10px; border-radius: 14px; }
-    #gameRoot.fullscreen-play { justify-content: flex-start; padding: 8px 10px; }
+    #gameRoot.fullscreen-play { justify-content: flex-start; padding: 6px 8px; }
+    #gameRoot.fullscreen-play .ka2-bar { padding-bottom: 5px; margin-bottom: 6px; }
+    #gameRoot.fullscreen-play .scores { margin-bottom: 5px; gap: 4px; }
     .grid-2 { grid-template-columns: 1fr; gap: 8px; }
-    .stage { height: auto; flex-direction: column; padding: 6px; gap: 5px; }
-    .stage canvas { height: 24dvh; max-height: 195px; width: 100%; order: 2; }
+    .stage { height: auto; flex-direction: column; padding: 5px 5px 4px; gap: 4px; margin-bottom: 6px; }
+    .stage canvas { height: 31dvh; max-height: 245px; width: 100%; order: 2; }
     .hud { position: static; width: 100%; padding: 0; order: 1; }
     .hud-left, .hud-right { gap: 3px; }
-    .badge, .tip-btn { font-size: 0.72rem; padding: 3px 7px; }
-    .tip-pill { font-size: 0.7rem; max-width: 175px; }
-    .bonus-bar { order: 3; width: 100%; height: 22px; display: flex; align-items: center; justify-content: center; }
-    .opt-btn { padding: 8px 9px; font-size: 0.8rem; }
+    .hud-right { min-width: 118px; }
+    .badge, .tip-btn { font-size: 0.71rem; padding: 3px 7px; }
+    .tip-pill { font-size: 0.68rem; max-width: 170px; }
+    .bonus-bar { position: static; order: 3; width: 100%; height: 20px; display: flex; align-items: center; justify-content: center; }
+    .options { gap: 5px; }
+    .opt-btn { padding: 7px 8px; font-size: 0.79rem; }
+    .info-box { padding: 7px 9px; margin-top: 6px; }
   }
 
   @media (orientation: landscape) and (max-height: 460px) and (pointer: coarse) {
