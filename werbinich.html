@@ -5,66 +5,114 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WER BIN ICH? | Das Promi-Pixel-Quiz</title>
 <style>
-  #wbi-app {
-    --bg: #0f172a; --card: #1e293b; --acc: #38bdf8; --gold: #f59e0b;
-    --ok: #10b981; --no: #ef4444; --txt: #f8fafc; --mut: #94a3b8;
+  body:has(> #gameRoot) { margin: 0; padding: 0; background: #090d16; }
+  #gameRoot {
+    --bg: #0f172a; --card: #1e293b; --line: #334155; --gold: #fbbf24;
+    --acc: #38bdf8; --ok: #22c55e; --no: #ef4444; --txt: #f8fafc; --mut: #94a3b8;
     font-family: system-ui, -apple-system, sans-serif;
-    background: var(--bg); color: var(--txt); max-width: 880px;
-    margin: 15px auto; padding: 22px; border-radius: 16px;
+    background: var(--bg); color: var(--txt);
+    max-width: 860px; min-height: 66dvh; margin: 10px auto;
+    padding: 18px; border-radius: 18px;
     box-shadow: 0 12px 35px rgba(0,0,0,0.45); box-sizing: border-box;
   }
-  #wbi-app *, #wbi-app *::before, #wbi-app *::after { box-sizing: border-box; }
-  .wbi-hdr { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 12px; margin-bottom: 18px; flex-wrap: wrap; gap: 8px; }
-  .wbi-logo { font-size: 1.65rem; font-weight: 900; letter-spacing: 1.5px; color: var(--acc); margin: 0; }
-  .wbi-logo span { font-size: 0.85rem; color: var(--mut); font-weight: 400; letter-spacing: 0; }
-  .wbi-box { background: var(--card); padding: 16px; border-radius: 12px; margin-bottom: 14px; border: 1px solid #334155; }
-  .wbi-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
-  .wbi-lbl { display: block; font-size: 0.88rem; font-weight: 700; color: var(--acc); margin-bottom: 6px; }
-  .wbi-inp, .wbi-sel { width: 100%; padding: 10px; border-radius: 8px; background: #0f172a; color: #fff; border: 1px solid #475569; font-size: 0.95rem; margin-bottom: 8px; }
-  .wbi-btn { background: var(--acc); color: #0f172a; border: none; padding: 11px 22px; border-radius: 25px; font-weight: 800; font-size: 0.98rem; cursor: pointer; transition: transform 0.1s, opacity 0.2s; }
-  .wbi-btn:hover:not(:disabled) { transform: scale(1.02); }
-  .wbi-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .wbi-btn-sec { background: #334155; color: #fff; font-weight: 600; padding: 8px 14px; font-size: 0.85rem; }
-  .wbi-btn-tip { background: #1e293b; color: #fbbf24; border: 1px solid #f59e0b; padding: 8px 12px; font-size: 0.85rem; border-radius: 10px; }
-  .wbi-scr { display: none; }
-  .wbi-scr.act { display: block; }
-  .wbi-scores { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 14px; }
-  .wbi-pbadge { padding: 7px 14px; border-radius: 20px; background: #1e293b; border: 1px solid #475569; font-size: 0.88rem; }
-  .wbi-pbadge.cur { background: var(--acc); color: #0f172a; font-weight: 800; border-color: var(--acc); }
-  .wbi-stage { display: grid; grid-template-columns: 240px 1fr; gap: 16px; align-items: start; }
-  .wbi-canvas-wrap { position: relative; width: 100%; aspect-ratio: 3 / 4; background: #090d16; border-radius: 12px; overflow: hidden; border: 2px solid #475569; }
-  .wbi-canvas-wrap canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
-  .wbi-bonus-tag { position: absolute; top: 8px; left: 8px; right: 8px; background: rgba(245, 158, 11, 0.92); color: #000; font-size: 0.75rem; font-weight: 800; padding: 4px 8px; border-radius: 6px; text-align: center; }
-  .wbi-opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap: 8px; margin-top: 10px; }
-  .wbi-opt { background: #0f172a; color: #fff; border: 2px solid #475569; padding: 11px 12px; border-radius: 10px; text-align: left; font-size: 0.92rem; font-weight: 600; cursor: pointer; }
-  .wbi-opt:hover:not(:disabled) { border-color: var(--acc); background: #1e293b; }
-  .wbi-opt.ok { background: rgba(16, 185, 129, 0.25); border-color: var(--ok); color: #6ee7b7; }
-  .wbi-opt.no { background: rgba(239, 68, 68, 0.25); border-color: var(--no); color: #fca5a5; }
-  .wbi-tip-pill { display: inline-block; background: rgba(245,158,11,0.15); border: 1px solid #f59e0b; color: #fde68a; padding: 5px 10px; border-radius: 8px; font-size: 0.85rem; margin: 4px 4px 0 0; }
-  @media (max-width: 640px) {
-    #wbi-app { padding: 12px; margin: 6px auto; }
-    .wbi-stage { grid-template-columns: 1fr; }
-    .wbi-canvas-wrap { max-width: 210px; margin: 0 auto; }
-    .wbi-opts { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-    .wbi-opt { padding: 9px; font-size: 0.82rem; }
+  #gameRoot *, #gameRoot *::before, #gameRoot *::after { box-sizing: border-box; }
+  #gameRoot.fullscreen-play {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    max-width: none; min-height: 100dvh; margin: 0; border-radius: 0;
+    z-index: 2147483647; overscroll-behavior: none; touch-action: manipulation;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 12px 18px; overflow: hidden;
+  }
+  .ka2-bar { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px;
+   margin-bottom: 12px; border-bottom: 1px solid var(--line); gap: 8px; }
+  .ka2-brand { display: flex; align-items: center; gap: 8px; font-size: 0.84rem; font-weight: 700; color: var(--mut); }
+  .card { background: var(--card); padding: 16px; border-radius: 14px; border: 1px solid var(--line); }
+  .title-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+  .game-title { font-size: 1.55rem; font-weight: 900; letter-spacing: 3px; color: var(--gold); margin: 0; }
+  .subtitle { font-size: 0.88rem; color: var(--mut); margin: 0 0 14px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .field-lbl { display: block; font-size: 0.78rem; font-weight: 700; color: var(--mut); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .ka2-inp, .ka2-sel { width: 100%; padding: 9px 12px; border-radius: 10px; background: var(--bg); color: var(--txt); border: 1px solid var(--line); font-size: 0.92rem; }
+  .ka2-sel { -webkit-appearance: none; appearance: none; padding-right: 30px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23fbbf24' d='M2 4l4 4 4-4z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
+  .p-names-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .btn-gold { background: var(--gold); color: #0f172a; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 800; font-size: 1rem; cursor: pointer; width: 100%; }
+  .btn-gold:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn-sec { background: var(--line); color: var(--txt); border: none; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; cursor: pointer; }
+  .btn-resume { background: rgba(56,189,248,0.16); color: var(--acc); border: 1px solid var(--acc); padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; cursor: pointer; }
+  .credits { font-size: 0.75rem; color: var(--mut); text-align: center; margin-top: 10px; }
+  .scr { display: none; width: 100%; max-width: 824px; margin: 0 auto; }
+  .scr.act { display: block; }
+  .scores { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 8px; }
+  .p-tag { padding: 5px 11px; border-radius: 20px; background: var(--card); border: 1px solid var(--line); font-size: 0.82rem; color: var(--mut); }
+  .p-tag.turn { border: 2px solid var(--gold); color: var(--txt); font-weight: 800; }
+  .stage { position: relative; width: 100%; height: 360px; border-radius: 14px; overflow: hidden; background: #020617; border: 1px solid var(--line); margin-bottom: 8px; display: flex; align-items: center; justify-content: center; }
+  .stage canvas { width: 100%; height: 100%; object-fit: contain; display: block; image-rendering: pixelated; }
+  .hud { position: absolute; top: 8px; left: 8px; right: 8px; display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; pointer-events: none; z-index: 2; }
+  .hud-left, .hud-right { display: flex; flex-direction: column; gap: 4px; pointer-events: auto; }
+  .hud-right { align-items: flex-end; }
+  .badge { background: rgba(15,23,42,0.86); border: 1px solid var(--line); color: var(--txt); padding: 4px 9px; border-radius: 8px; font-size: 0.78rem; font-weight: 700; backdrop-filter: blur(4px); }
+  .badge-gold { border-color: var(--gold); color: var(--gold); }
+  .badge-ok { border-color: var(--ok); color: #86efac; }
+  .tip-btn { background: rgba(30,41,59,0.92); color: var(--gold); border: 1px solid var(--gold); padding: 5px 9px; border-radius: 8px; font-size: 0.76rem; font-weight: 700; cursor: pointer; }
+  .tip-btn:disabled { opacity: 0.5; cursor: default; }
+  .tip-pill { background: rgba(15,23,42,0.88); border: 1px solid var(--gold); color: #fde68a; padding: 3px 8px; border-radius: 7px; font-size: 0.74rem; max-width: 240px; }
+  .options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px; }
+  .opt-btn { background: var(--card); color: var(--txt); border: 1px solid var(--line); padding: 10px 12px; border-radius: 10px; text-align: left; font-size: 0.9rem; font-weight: 700; cursor: pointer; }
+  .opt-btn:hover:not(:disabled) { border-color: var(--gold); }
+  .opt-btn.ok { background: rgba(34,197,94,0.22); border-color: var(--ok); color: #86efac; }
+  .opt-btn.no { background: rgba(239,68,68,0.22); border-color: var(--no); color: #fca5a5; }
+  .info-box { display: none; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; margin-top: 8px; }
+  .info-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .info-bio { font-size: 0.8rem; color: #cbd5e1; line-height: 1.35; max-height: 3.9em; overflow: hidden; }
+  .rotate-hint { display: none; position: fixed; inset: 0; background: #0f172a; color: var(--gold); z-index: 2147483647; align-items: center; justify-content: center; text-align: center; padding: 20px; font-weight: 800; }
+  @media (max-width: 600px) {
+    #gameRoot { min-height: auto; margin: 6px auto; padding: 10px; border-radius: 14px; }
+    #gameRoot.fullscreen-play { justify-content: flex-start; padding: 8px 10px; }
+    .grid-2 { grid-template-columns: 1fr; gap: 8px; }
+    .stage { height: 28dvh; max-height: 220px; }
+    .opt-btn { padding: 8px 9px; font-size: 0.8rem; }
+  }
+  @media (orientation: landscape) and (max-height: 460px) and (pointer: coarse) {
+    #gameRoot.fullscreen-play .rotate-hint { display: flex; }
   }
 </style>
 </head>
-<body style="margin:0; padding:10px; background:#090d16;">
-<div id="wbi-app">
-  <div class="wbi-hdr">
-    <h1 class="wbi-logo">WER BIN ICH? <span>| Das Promi-Pixel-Quiz</span></h1>
-    <div style="font-size:0.82rem; color:var(--mut);">Wikimedia &amp; Wikipedia</div>
+<body>
+
+<div id="gameRoot">
+  <div class="rotate-hint">Bitte drehe dein Smartphone ins Hochformat.</div>
+  <div class="ka2-bar">
+    <div class="ka2-brand">
+      <svg width="44" height="19" viewBox="0 0 220 95" aria-label="KA2 Logo" style="display:block; flex-shrink:0; border-radius:50%; overflow:hidden; background:#4f4f4f;">
+        <rect x="42" y="0" width="52" height="95" fill="#0068b7"/>
+        <polygon points="42,50 86,95 42,95" fill="#00b4ed"/>
+        <polygon points="88,28 122,74 88,74" fill="#39a935"/>
+        <rect x="88" y="74" width="54" height="21" fill="#ffed00"/>
+        <polygon points="62,0 185,0 185,74 118,74" fill="#e30613"/>
+        <polygon points="164,0 185,0 185,74 176,74" fill="#ea5b0c"/>
+        <polygon points="142,74 185,74 172,95 142,95" fill="#e6007e"/>
+        <path d="M36,0 H47 V45 L88,0 H103 L61,46 L104,95 H89 L47,48 V95 H36 Z" fill="#2d2d2d"/>
+        <path d="M111,0 H123 L156,95 H144 L136,72 H98 L90,95 H78 Z M102,62 H132 L117,17 Z" fill="#2d2d2d"/>
+        <path d="M138,26 C138,10 150,2 164,2 C178,2 187,11 187,25 C187,39 177,48 161,61 L148,72 H187 V83 H134 V73 L153,56 C168,43 175,36 175,25 C175,17 170,12 163,12 C155,12 150,18 150,27 Z" fill="#2d2d2d"/>
+      </svg>
+      <span>ka-2.art Games</span>
+    </div>
+    <button type="button" id="exitFsBtn" class="btn-sec" style="display:none;">✕ Menü</button>
   </div>
 
-  <!-- 1. SETUP SCREEN -->
-  <div id="wbi-setup" class="wbi-scr act">
-    <div class="wbi-grid2">
-      <div class="wbi-box">
-        <label class="wbi-lbl">1. Kategorie &amp; Regeln</label>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-          <span style="font-size:0.9rem;">Promi-Kategorie:</span>
-          <select id="wbi-cat" class="wbi-sel" style="width:165px; margin:0;">
+  <!-- 1. MENÜ-ANSICHT -->
+  <div id="menuView" class="scr act">
+    <div class="card">
+      <div class="title-row">
+        <h1 class="game-title">WER BIN ICH?</h1>
+        <button type="button" id="resumeBtn" class="btn-resume" style="display:none;">▶ Laufendes Spiel fortsetzen</button>
+      </div>
+      <p class="subtitle">Erkenne berühmte Persönlichkeiten, während sich das Porträt langsam entpixelt.</p>
+
+      <div class="grid-2">
+        <div>
+          <label class="field-lbl" for="wbi-cat">Kategorie</label>
+          <select id="wbi-cat" class="ka2-sel">
             <option value="all" selected>Alle Prominenten</option>
             <option value="film">Film &amp; Schauspiel</option>
             <option value="music">Musik &amp; Gesang</option>
@@ -73,17 +121,25 @@
             <option value="science">Künstler &amp; Wissenschaft</option>
           </select>
         </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-          <span style="font-size:0.9rem;">Auswahl-Namen:</span>
-          <select id="wbi-choices" class="wbi-sel" style="width:165px; margin:0;">
+        <div>
+          <label class="field-lbl" for="wbi-speed">Entpixel-Tempo</label>
+          <select id="wbi-speed" class="ka2-sel">
+            <option value="18000">Gemütlich (18 Sek.)</option>
+            <option value="15000" selected>Standard (15 Sek.)</option>
+            <option value="10000">Schnell (10 Sek.)</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-lbl" for="wbi-choices">Antwortmöglichkeiten</label>
+          <select id="wbi-choices" class="ka2-sel">
             <option value="4">4 Personen</option>
             <option value="6" selected>6 Personen</option>
             <option value="8">8 Personen</option>
           </select>
         </div>
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-size:0.9rem;">Siegpunktzahl:</span>
-          <select id="wbi-target" class="wbi-sel" style="width:165px; margin:0;">
+        <div>
+          <label class="field-lbl" for="wbi-target">Zielpunktzahl</label>
+          <select id="wbi-target" class="ka2-sel">
             <option value="15">15 Punkte</option>
             <option value="25" selected>25 Punkte</option>
             <option value="40">40 Punkte</option>
@@ -92,112 +148,143 @@
         </div>
       </div>
 
-      <div class="wbi-box">
-        <label class="wbi-lbl">2. Spieler eintragen (min. 1)</label>
-        <div id="wbi-plist">
-          <input type="text" class="wbi-inp wbi-pin" value="Spieler 1">
+      <div class="grid-2">
+        <div>
+          <label class="field-lbl" for="pCountSel">Anzahl Spieler</label>
+          <select id="pCountSel" class="ka2-sel">
+            <option value="1" selected>1 Spieler (Solo)</option>
+            <option value="2">2 Spieler</option>
+            <option value="3">3 Spieler</option>
+            <option value="4">4 Spieler</option>
+            <option value="5">5 Spieler</option>
+            <option value="6">6 Spieler</option>
+            <option value="7">7 Spieler</option>
+            <option value="8">8 Spieler</option>
+          </select>
         </div>
-        <button type="button" id="wbi-add-p" class="wbi-btn wbi-btn-sec">+ Spieler hinzufügen</button>
+        <div>
+          <label class="field-lbl">Spielernamen</label>
+          <div id="pNamesBox" class="p-names-grid"></div>
+        </div>
       </div>
-    </div>
 
-    <div style="text-align:center; margin-top:8px;">
-      <button type="button" id="wbi-start" class="wbi-btn" style="padding:14px 38px; font-size:1.05rem;">🎭 Quiz starten</button>
-      <p id="wbi-err" style="color:var(--no); font-size:0.9rem; margin-top:10px;"></p>
+      <button type="button" id="wbi-start" class="btn-gold">Spiel starten</button>
+      <p id="wbi-err" style="color:var(--no); font-size:0.85rem; margin:8px 0 0; text-align:center;"></p>
+      <div class="credits">Porträts &amp; Kurzbiografien: Wikimedia Commons &amp; Wikipedia</div>
     </div>
   </div>
 
-  <!-- 2. GAME SCREEN -->
-  <div id="wbi-game" class="wbi-scr">
-    <div id="wbi-scores" class="wbi-scores"></div>
+  <!-- 2. SPIELFELD-ANSICHT -->
+  <div id="gameView" class="scr">
+    <div id="wbi-scores" class="scores"></div>
 
-    <div class="wbi-box">
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
-        <div>
-          <span id="wbi-turn" style="font-size:1.15rem; font-weight:800; color:var(--acc);">Spieler 1 ist dran!</span>
-          <span id="wbi-streak" style="font-size:0.84rem; color:var(--mut); margin-left:6px;">(Zug 1/2)</span>
+    <div class="stage">
+      <canvas id="wbi-canvas" width="420" height="540"></canvas>
+      <div class="hud">
+        <div class="hud-left">
+          <div id="wbi-turn-badge" class="badge badge-gold">Spieler 1 (Zug 1/2)</div>
+          <button type="button" id="wbi-tip-btn" class="tip-btn">★ Tipp 1: Beruf (-1 Pkt.)</button>
+          <div id="wbi-tips-area" style="display:flex; flex-direction:column; gap:3px;"></div>
         </div>
-        <div style="display:flex; gap:8px; align-items:center;">
-          <span id="wbi-pts-badge" style="background:rgba(16,185,129,0.2); border:1px solid var(--ok); color:#6ee7b7; padding:4px 10px; border-radius:12px; font-size:0.84rem; font-weight:800;">Aktuell: 4 + 1 Bonus Pkt.</span>
-          <button type="button" id="wbi-skip" class="wbi-btn wbi-btn-sec" style="padding:5px 10px; font-size:0.8rem;">⏭ Überspringen</button>
-        </div>
-      </div>
-
-      <div class="wbi-stage">
-        <div class="wbi-canvas-wrap">
-          <canvas id="wbi-canvas" width="300" height="400"></canvas>
-          <div id="wbi-bonus-tag" class="wbi-bonus-tag">⚡ Pixel-Bonus aktiv (+1 Pkt.)</div>
-        </div>
-
-        <div>
-          <div style="margin-bottom:10px;">
-            <button type="button" id="wbi-tip-btn" class="wbi-btn wbi-btn-tip">💡 Tipp 1 anfordern (Beruf • dann 3 Pkt.)</button>
-            <div id="wbi-tips-area" style="margin-top:6px;"></div>
-          </div>
-
-          <div style="font-size:0.95rem; font-weight:700; margin-bottom:6px;">Wer ist auf diesem Bild zu sehen?</div>
-          <div id="wbi-opts" class="wbi-opts"></div>
+        <div class="hud-right">
+          <div id="wbi-pts-badge" class="badge badge-ok">4 + 1 Bonus Pkt.</div>
+          <div id="wbi-bonus-tag" class="badge badge-gold">★ Pixel-Bonus aktiv</div>
+          <button type="button" id="wbi-skip" class="btn-sec" style="padding:4px 8px; font-size:0.74rem;">↺ Überspringen</button>
         </div>
       </div>
+    </div>
 
-      <div id="wbi-res" style="display:none; background:#0f172a; border:1px solid #475569; border-radius:10px; padding:14px; margin-top:14px;">
-        <div id="wbi-res-title" style="font-size:1.15rem; font-weight:800; margin-bottom:6px;"></div>
-        <div id="wbi-res-bio" style="font-size:0.9rem; color:#cbd5e1; line-height:1.45; margin-bottom:12px;"></div>
-        <button type="button" id="wbi-next" class="wbi-btn">Weiter ➔</button>
+    <div id="wbi-opts" class="options"></div>
+
+    <div id="infoBox" class="info-box">
+      <div class="info-top">
+        <div id="wbi-res-title" style="font-size:0.95rem; font-weight:800;"></div>
+        <button type="button" id="wbi-next" class="btn-gold" style="width:auto; padding:6px 14px; font-size:0.84rem; border-radius:8px;">Weiter ▶</button>
       </div>
+      <div id="wbi-res-bio" class="info-bio"></div>
     </div>
   </div>
 
-  <!-- 3. WINNER SCREEN -->
-  <div id="wbi-winner" class="wbi-scr" style="text-align:center; padding:24px 12px;">
-    <div style="font-size:4rem; margin-bottom:8px;">👑</div>
-    <h2 id="wbi-win-name" style="color:var(--acc); font-size:2rem; margin:0 0 8px;">Spieler 1</h2>
-    <p id="wbi-win-txt" style="color:#cbd5e1; margin-bottom:18px;"></p>
-    <div id="wbi-final-tbl" class="wbi-box" style="max-width:420px; margin:0 auto 20px;"></div>
-    <button type="button" id="wbi-restart" class="wbi-btn">Neues Spiel</button>
+  <!-- 3. SIEGESBILDSCHIRM -->
+  <div id="winView" class="scr">
+    <div class="card" style="text-align:center;">
+      <div style="font-size:2.4rem; color:var(--gold); margin-bottom:4px;">★</div>
+      <h2 id="wbi-win-name" style="color:var(--gold); font-size:1.7rem; margin:0 0 6px;">Spieler 1</h2>
+      <p id="wbi-win-txt" style="color:var(--mut); font-size:0.9rem; margin:0 0 14px;"></p>
+      <div id="wbi-final-tbl" style="max-width:400px; margin:0 auto 16px; text-align:left;"></div>
+      <button type="button" id="wbi-restart" class="btn-gold" style="max-width:260px;">Neues Spiel</button>
+    </div>
   </div>
 </div>
 <script>
 (function() {
   const CAT_SEARCHES = {
     all: {
-      m: ["Schauspieler", "Sänger", "Fußballspieler", "Tennisspieler", "Radrennfahrer", "Bundeskanzler", "Künstler", "Physiker"],
-      f: ["Schauspielerin", "Sängerin", "Fußballspielerin", "Tennisspielerin", "Skirennläuferin", "Bundeskanzlerin", "Künstlerin", "Physikerin"]
+      m: Array.of("Schauspieler", "Sänger", "Fußballspieler", "Tennisspieler", "Radrennfahrer", "Bundeskanzler", "Künstler", "Physiker"),
+      f: Array.of("Schauspielerin", "Sängerin", "Fußballspielerin", "Tennisspielerin", "Skirennläuferin", "Bundeskanzlerin", "Künstlerin", "Physikerin")
     },
     film: {
-      m: ["Schauspieler", "Filmschauspieler", "Filmregisseur", "Drehbuchautor"],
-      f: ["Schauspielerin", "Filmschauspielerin", "Filmregisseurin", "Drehbuchautorin"]
+      m: Array.of("Schauspieler", "Filmschauspieler", "Filmregisseur", "Drehbuchautor"),
+      f: Array.of("Schauspielerin", "Filmschauspielerin", "Filmregisseurin", "Drehbuchautorin")
     },
     music: {
-      m: ["Sänger", "Rocksänger", "Rapper", "Gitarrist", "Schlagzeuger", "Komponist"],
-      f: ["Sängerin", "Pop-Sängerin", "Rapperin", "Pianistin", "Komponistin", "Musikerin"]
+      m: Array.of("Sänger", "Rocksänger", "Rapper", "Gitarrist", "Schlagzeuger", "Komponist"),
+      f: Array.of("Sängerin", "Pop-Sängerin", "Rapperin", "Pianistin", "Komponistin", "Musikerin")
     },
     sport: {
-      m: ["Fußballspieler", "Torhüter", "Tennisspieler", "Radrennfahrer", "Skirennläufer", "Formel-1-Rennfahrer", "Leichtathlet", "Schwimmer"],
-      f: ["Fußballspielerin", "Torhüterin", "Tennisspielerin", "Radrennfahrerin", "Skirennläuferin", "Leichtathletin", "Schwimmerin", "Biathletin"]
+      m: Array.of("Fußballspieler", "Torhüter", "Tennisspieler", "Radrennfahrer", "Skirennläufer", "Formel-1-Rennfahrer", "Leichtathlet", "Schwimmer"),
+      f: Array.of("Fußballspielerin", "Torhüterin", "Tennisspielerin", "Radrennfahrerin", "Skirennläuferin", "Leichtathletin", "Schwimmerin", "Biathletin")
     },
     politics: {
-      m: ["Bundeskanzler", "Bundesrat", "Politiker", "Ministerpräsident", "Staatspräsident"],
-      f: ["Bundeskanzlerin", "Bundesrätin", "Politikerin", "Ministerpräsidentin", "Außenministerin"]
+      m: Array.of("Bundeskanzler", "Bundesrat", "Politiker", "Ministerpräsident", "Staatspräsident"),
+      f: Array.of("Bundeskanzlerin", "Bundesrätin", "Politikerin", "Ministerpräsidentin", "Außenministerin")
     },
     science: {
-      m: ["Künstler", "Maler", "Bildhauer", "Architekt", "Physiker", "Schriftsteller"],
-      f: ["Künstlerin", "Malerin", "Bildhauerin", "Architektin", "Physikerin", "Schriftstellerin"]
+      m: Array.of("Künstler", "Maler", "Bildhauer", "Architekt", "Physiker", "Schriftsteller"),
+      f: Array.of("Künstlerin", "Malerin", "Bildhauerin", "Architektin", "Physikerin", "Schriftstellerin")
     }
   };
 
   let poolCache = {};
   let usedQids = new Set();
   let pixelTimer = null;
-  let cfg = { cat: "all", choices: 6, target: 25 };
+  let gameActive = false;
+  let rootAnchor = null;
+  let cfg = { cat: "all", speed: 15000, choices: 6, target: 25 };
   let st = {
-    players: [], curIdx: 0, streak: 0,
-    isTie: false, tieCands: [], tiePos: 0,
+    players: new Array(), curIdx: 0, streak: 0,
+    isTie: false, tieCands: new Array(), tiePos: 0,
     current: null, tipsUsed: 0, pixelPct: 0, answered: false
   };
 
+  function enterFullscreen() {
+    const root = document.getElementById("gameRoot");
+    if (!rootAnchor) {
+      rootAnchor = document.createComment("gameRoot-anchor");
+      root.parentNode.insertBefore(rootAnchor, root);
+    }
+    document.body.appendChild(root);
+    root.classList.add("fullscreen-play");
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    document.getElementById("exitFsBtn").style.display = "inline-block";
+  }
+
+  function exitFullscreen(keepSession) {
+    const root = document.getElementById("gameRoot");
+    root.classList.remove("fullscreen-play");
+    document.documentElement.style.overflow = "";
+    document.body.style.overflow = "";
+    document.getElementById("exitFsBtn").style.display = "none";
+    if (rootAnchor && rootAnchor.parentNode) {
+      rootAnchor.parentNode.insertBefore(root, rootAnchor);
+    }
+    document.getElementById("resumeBtn").style.display = (keepSession && gameActive) ? "inline-block" : "none";
+    showScr("menuView");
+  }
+
   function showScr(id) {
-    document.querySelectorAll(".wbi-scr").forEach(e => e.classList.remove("act"));
+    document.querySelectorAll("#gameRoot .scr").forEach(e => e.classList.remove("act"));
     document.getElementById(id).classList.add("act");
   }
 
@@ -205,25 +292,44 @@
     const a = arr.slice();
     for (let i = a.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      const tmp = a.at(i); a[i] = a.at(j); a[j] = tmp;
+      const tmp = a.at(i); a.splice(i, 1, a.at(j)); a.splice(j, 1, tmp);
     }
     return a;
   }
 
-  document.getElementById("wbi-add-p").addEventListener("click", function() {
-    const list = document.getElementById("wbi-plist");
-    const inp = document.createElement("input");
-    inp.type = "text";
-    inp.className = "wbi-inp wbi-pin";
-    inp.value = "Spieler " + (list.children.length + 1);
-    list.appendChild(inp);
+  function renderNameInputs() {
+    const count = parseInt(document.getElementById("pCountSel").value, 10) || 1;
+    const box = document.getElementById("pNamesBox");
+    const oldVals = Array.from(box.querySelectorAll("input")).map(inp => inp.value);
+    box.innerHTML = "";
+    for (let i = 0; i < count; i++) {
+      const inp = document.createElement("input");
+      inp.type = "text";
+      inp.className = "ka2-inp wbi-pin";
+      inp.value = (i < oldVals.length && oldVals.at(i)) ? oldVals.at(i) : ("Spieler " + (i + 1));
+      box.appendChild(inp);
+    }
+  }
+
+  document.getElementById("pCountSel").addEventListener("change", renderNameInputs);
+  renderNameInputs();
+
+  document.getElementById("exitFsBtn").addEventListener("click", function() {
+    exitFullscreen(true);
+  });
+
+  document.getElementById("resumeBtn").addEventListener("click", function() {
+    if (!gameActive) return;
+    enterFullscreen();
+    showScr("gameView");
   });
 
   async function loadCelebPool(catKey) {
-    if (poolCache[catKey] && poolCache[catKey].m.length >= 15 && poolCache[catKey].f.length >= 15) {
-      return poolCache[catKey];
+    const cached = Reflect.get(poolCache, catKey);
+    if (cached && cached.m.length >= 15 && cached.f.length >= 15) {
+      return cached;
     }
-    const catObj = CAT_SEARCHES[catKey] || CAT_SEARCHES.all;
+    const catObj = Reflect.get(CAT_SEARCHES, catKey) || CAT_SEARCHES.all;
     const wikiApi = "https://de." + "wiki" + "pedia.org/w/api.php";
     const nonPersonWords = /(Buch|Roman|Sachbuch|Film|Spielfilm|Dokumentarfilm|Album|Lied|Single|Zeitschrift|Magazin|Verein|Club|Band|Mannschaft|Gemälde|Skulptur|Werk|Wappen|Pokal|Trophäe|Liga)/i;
 
@@ -236,12 +342,12 @@
         const randOffset = Math.floor(Math.random() * 40);
         const url = wikiApi + "?action=query&generator=search&gsrsearch=" + encodeURIComponent(q) +
           "&gsrnamespace=0&gsrlimit=45&gsroffset=" + randOffset +
-          "&prop=pageimages|description&piprop=thumbnail&pithumbsize=420&format=json&origin=*";
+          "&prop=pageimages|description&piprop=thumbnail&pithumbsize=540&format=json&origin=*";
         try {
           const res = await fetch(url);
           if (!res.ok) continue;
           const json = await res.json();
-          const pages = (json.query && json.query.pages) ? Object.values(json.query.pages) : [];
+          const pages = (json.query && json.query.pages) ? Object.values(json.query.pages) : new Array();
           pages.forEach(p => {
             const desc = p.description || "";
             const src = (p.thumbnail && p.thumbnail.source) ? p.thumbnail.source : "";
@@ -271,9 +377,11 @@
     const listM = await fetchGenderList(catObj.m, 3);
     const listF = await fetchGenderList(catObj.f, 5);
     if (listM.length < 4 || listF.length < 4) throw new Error("Zu wenige Einträge geladen – bitte erneut versuchen.");
-    poolCache[catKey] = { m: listM, f: listF };
-    return poolCache[catKey];
+    const entry = { m: listM, f: listF };
+    Reflect.set(poolCache, catKey, entry);
+    return entry;
   }
+
   async function fetchWikiSummary(wikiTitle) {
     try {
       const api = "https://de." + "wiki" + "pedia.org/api/rest_v1/page/summary/" + encodeURIComponent(wikiTitle);
@@ -291,7 +399,7 @@
     sb.innerHTML = "";
     st.players.forEach((p, i) => {
       const div = document.createElement("div");
-      div.className = "wbi-pbadge" + (i === st.curIdx ? " cur" : "");
+      div.className = "p-tag" + (i === st.curIdx ? " turn" : "");
       div.innerText = p.name + ": " + p.score + " / " + cfg.target;
       sb.appendChild(div);
     });
@@ -304,10 +412,10 @@
     const tag = document.getElementById("wbi-bonus-tag");
 
     if (bonusPts > 0) {
-      badge.innerText = "Aktuell: " + basePts + " + 1 Bonus Pkt.";
+      badge.innerText = basePts + " + 1 Bonus Pkt.";
       tag.style.display = "block";
     } else {
-      badge.innerText = "Aktuell: " + basePts + (basePts === 1 ? " Punkt" : " Punkte");
+      badge.innerText = basePts + (basePts === 1 ? " Punkt" : " Punkte");
       tag.style.display = "none";
     }
   }
@@ -319,7 +427,7 @@
     const off = document.createElement("canvas");
     const offCtx = off.getContext("2d");
 
-    ctx.fillStyle = "#090d16";
+    ctx.fillStyle = "#020617";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     const img = new Image();
@@ -340,7 +448,7 @@
         sy = 0;
       }
       const startTime = Date.now();
-      const durationMs = 15000;
+      const durationMs = cfg.speed || 15000;
 
       function drawStep() {
         const elapsed = Date.now() - startTime;
@@ -348,8 +456,8 @@
         st.pixelPct = Math.round(progress * 100);
         updatePointsBadge();
 
-        const blocksW = Math.max(8, Math.round(8 + Math.pow(progress, 1.7) * 292));
-        const blocksH = Math.max(10, Math.round(blocksW * (4 / 3)));
+        const blocksW = Math.max(10, Math.round(10 + Math.pow(progress, 1.7) * 410));
+        const blocksH = Math.max(13, Math.round(blocksW * (540 / 420)));
 
         off.width = blocksW;
         off.height = blocksH;
@@ -377,13 +485,13 @@
     const btn = document.getElementById("wbi-tip-btn");
     if (st.tipsUsed === 0) {
       btn.disabled = false;
-      btn.innerText = "💡 Tipp 1 anfordern (Beruf • dann 3 Pkt.)";
+      btn.innerText = "★ Tipp 1: Beruf (dann 3 Pkt.)";
     } else if (st.tipsUsed === 1) {
       btn.disabled = false;
-      btn.innerText = "💡 Tipp 2 anfordern (Land & Jahrgang • dann 2 Pkt.)";
+      btn.innerText = "★ Tipp 2: Herkunft (dann 2 Pkt.)";
     } else if (st.tipsUsed === 2) {
       btn.disabled = false;
-      btn.innerText = "💡 Tipp 3 anfordern (Vorname • dann 1 Pkt.)";
+      btn.innerText = "★ Tipp 3: Vorname (dann 1 Pkt.)";
     } else {
       btn.disabled = true;
       btn.innerText = "Alle 3 Tipps genutzt (1 Pkt.)";
@@ -395,13 +503,13 @@
     st.tipsUsed += 1;
     const area = document.getElementById("wbi-tips-area");
     const pill = document.createElement("span");
-    pill.className = "wbi-tip-pill";
+    pill.className = "tip-pill";
 
     if (st.tipsUsed === 1) {
       pill.innerText = "1. Beruf: " + st.current.occ;
     } else if (st.tipsUsed === 2) {
-      const yr = st.current.birthYear ? " • Jahrgang " + st.current.birthYear : "";
-      pill.innerText = "2. Herkunft: " + st.current.country + yr;
+      const yr = st.current.birthYear ? " (" + st.current.birthYear + ")" : "";
+      pill.innerText = "2. Info: " + st.current.country + yr;
     } else if (st.tipsUsed === 3) {
       pill.innerText = "3. Vorname: " + st.current.firstName;
     }
@@ -412,25 +520,28 @@
   });
   async function loadNextCeleb() {
     clearInterval(pixelTimer);
+
     st.tipsUsed = 0;
     st.pixelPct = 0;
     st.answered = false;
 
-    document.getElementById("wbi-res").style.display = "none";
+    document.getElementById("infoBox").style.display = "none";
     document.getElementById("wbi-tips-area").innerHTML = "";
     updateTipButton();
     updatePointsBadge();
 
     const curP = st.players.at(st.curIdx);
-    document.getElementById("wbi-turn").innerText = (st.isTie ? "⚡ " : "") + curP.name + " ist dran!";
-    document.getElementById("wbi-streak").innerText = "(Zug " + (st.streak + 1) + "/2)";
+    const turnText = st.isTie
+      ? ("★ STECHEN: " + curP.name)
+      : (curP.name + " (Zug " + (st.streak + 1) + "/2)");
+    document.getElementById("wbi-turn-badge").innerText = turnText;
     renderScoreboard();
 
     const optsGrid = document.getElementById("wbi-opts");
-    optsGrid.innerHTML = "<div style='color:#94a3b8;'>Lade Persönlichkeit...</div>";
+    optsGrid.innerHTML = "<div style='color:#94a3b8; grid-column:1/-1; text-align:center;'>Lade Persönlichkeit...</div>";
 
     try {
-            const pools = await loadCelebPool(cfg.cat);
+      const pools = await loadCelebPool(cfg.cat);
       const wantFemale = (usedQids.size % 2 === 0);
       const primaryPool = wantFemale ? pools.f : pools.m;
       const secondaryPool = wantFemale ? pools.m : pools.f;
@@ -450,12 +561,12 @@
       const wrongSame = shuffle(primaryPool.filter(c => c.qid !== target.qid)).slice(0, halfWrong);
       const wrongOther = shuffle(secondaryPool).slice(0, otherWrong);
       const distractors = wrongSame.concat(wrongOther);
-      const choices = shuffle([{ name: target.name, ok: true }].concat(distractors.map(d => ({ name: d.name, ok: false }))));
+      const choices = shuffle(Array.of({ name: target.name, ok: true }).concat(distractors.map(d => ({ name: d.name, ok: false }))));
       optsGrid.innerHTML = "";
       choices.forEach(ch => {
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.className = "wbi-opt";
+        btn.className = "opt-btn";
         btn.innerText = ch.name;
 
         let startY = 0, moved = false;
@@ -477,17 +588,18 @@
       st.current.bio = summary.bio;
       startPixelReveal(summary.imgUrl);
     } catch (err) {
-      optsGrid.innerHTML = "<div style='color:#ef4444;'>" + err.message + "</div>";
+      optsGrid.innerHTML = "<div style='color:#ef4444; grid-column:1/-1;'>" + err.message + "</div>";
     }
   }
 
   async function handleGuess(ch, clickedBtn) {
     if (st.answered) return;
+
     const hadBonus = st.pixelPct < 50;
     st.answered = true;
     clearInterval(pixelTimer);
 
-    const allBtns = document.querySelectorAll("#wbi-opts .wbi-opt");
+    const allBtns = document.querySelectorAll("#wbi-opts .opt-btn");
     allBtns.forEach(b => { b.disabled = true; });
     document.getElementById("wbi-tip-btn").disabled = true;
 
@@ -495,11 +607,25 @@
     const ctx = canvas.getContext("2d");
     const fullImg = new Image();
     fullImg.crossOrigin = "anonymous";
-    fullImg.onload = () => { ctx.imageSmoothingEnabled = true; ctx.drawImage(fullImg, 0, 0, canvas.width, canvas.height); };
+    fullImg.onload = () => {
+      const targetRatio = canvas.width / canvas.height;
+      const imgRatio = fullImg.naturalWidth / fullImg.naturalHeight;
+      let sx = 0, sy = 0, sw = fullImg.naturalWidth, sh = fullImg.naturalHeight;
+      if (imgRatio > targetRatio) {
+        sw = fullImg.naturalHeight * targetRatio;
+        sx = (fullImg.naturalWidth - sw) / 2;
+      } else {
+        sh = fullImg.naturalWidth / targetRatio;
+        sy = 0;
+      }
+      ctx.imageSmoothingEnabled = true;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(fullImg, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+    };
     fullImg.src = st.current.imgUrl;
 
     const curP = st.players.at(st.curIdx);
-    const resBox = document.getElementById("wbi-res");
+    const resBox = document.getElementById("infoBox");
     const resTit = document.getElementById("wbi-res-title");
     const resBio = document.getElementById("wbi-res-bio");
 
@@ -511,19 +637,18 @@
       st.streak += 1;
       renderScoreboard();
 
-      const bonusTxt = hadBonus ? " (inkl. +1 Pixel-Bonus!)" : "";
-      resTit.innerHTML = "<span style='color:#10b981;'>✔ Richtig! +" + totalWon + " Punkte" + bonusTxt + "</span>";
+      const bonusTxt = hadBonus ? " (+1 Bonus)" : "";
+      resTit.innerHTML = "<span style='color:#22c55e;'>✓ Richtig! +" + totalWon + " Pkt." + bonusTxt + "</span>";
     } else {
       clickedBtn.classList.add("no");
       allBtns.forEach(b => { if (b.innerText === st.current.name) b.classList.add("ok"); });
       st.streak = 99;
-      resTit.innerHTML = "<span style='color:#ef4444;'>✘ Leider falsch! Gesucht war: " + st.current.name + "</span>";
+      resTit.innerHTML = "<span style='color:#ef4444;'>✕ Gesucht war: " + st.current.name + "</span>";
     }
 
-    resBio.innerText = "Lade Wikipedia-Kurzbiografie...";
-    resBox.style.display = "block";
     const bio = st.current.bio;
     resBio.innerText = bio || (st.current.name + " (" + st.current.occ + ", " + st.current.country + ")");
+    resBox.style.display = "block";
   }
 
   document.getElementById("wbi-next").addEventListener("click", function() {
@@ -559,11 +684,12 @@
 
   function evaluateRound() {
     const maxSc = Math.max.apply(null, st.players.map(p => p.score));
+
     if (maxSc < cfg.target && !st.isTie) {
       loadNextCeleb();
       return;
     }
-    const leaders = [];
+    const leaders = new Array();
     st.players.forEach((p, idx) => { if (p.score === maxSc) leaders.push(idx); });
 
     if (leaders.length === 1) {
@@ -573,13 +699,13 @@
       st.tieCands = leaders;
       st.tiePos = 0;
       st.curIdx = leaders.at(0);
-      alert("⚡ STECHEN! Gleichstand an der Spitze – 1 Entscheidungs-Promi pro Person!");
       loadNextCeleb();
     }
   }
 
   function showWinner(winner) {
     clearInterval(pixelTimer);
+    gameActive = false;
     document.getElementById("wbi-win-name").innerText = winner.name;
     document.getElementById("wbi-win-txt").innerText = winner.name + " gewinnt das Promi-Quiz mit " + winner.score + " Punkten!";
     const tbl = document.getElementById("wbi-final-tbl");
@@ -590,7 +716,7 @@
       row.innerHTML = "<span>" + (i + 1) + ". " + p.name + "</span><strong>" + p.score + " Pkt.</strong>";
       tbl.appendChild(row);
     });
-    showScr("wbi-winner");
+    showScr("winView");
   }
 
   document.getElementById("wbi-start").addEventListener("click", function() {
@@ -603,22 +729,26 @@
     }
     cfg = {
       cat: document.getElementById("wbi-cat").value,
-      choices: parseInt(document.getElementById("wbi-choices").value) || 6,
-      target: parseInt(document.getElementById("wbi-target").value) || 25
+      speed: parseInt(document.getElementById("wbi-speed").value, 10) || 15000,
+      choices: parseInt(document.getElementById("wbi-choices").value, 10) || 6,
+      target: parseInt(document.getElementById("wbi-target").value, 10) || 25
     };
     st = {
       players: names.map(n => ({ name: n, score: 0 })),
-      curIdx: 0, streak: 0, isTie: false, tieCands: [], tiePos: 0,
+      curIdx: 0, streak: 0, isTie: false, tieCands: new Array(), tiePos: 0,
       current: null, tipsUsed: 0, pixelPct: 0, answered: false
     };
     usedQids.clear();
-    showScr("wbi-game");
+    gameActive = true;
+    enterFullscreen();
+    showScr("gameView");
     loadNextCeleb();
   });
 
   document.getElementById("wbi-restart").addEventListener("click", function() {
     clearInterval(pixelTimer);
-    showScr("wbi-setup");
+    gameActive = false;
+    exitFullscreen(false);
   });
 })();
 </script>
