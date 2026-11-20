@@ -198,9 +198,9 @@
       <div class="hud">
         <div class="hud-left">
           <div id="wbi-turn-badge" class="badge badge-gold">Spieler 1 (Zug 1/2)</div>
-          <button type="button" id="wbi-tip-btn" class="tip-btn">★ Tipp 1: Beruf (-1 Pkt.)</button>
-          <div id="wbi-tips-area" style="display:flex; flex-direction:column; gap:3px;"></div>
+          <button type="button" id="wbi-tip-btn" class="tip-btn">★ Tipp (2 Pkt.)</button>
         </div>
+
         <div class="hud-right">
           <div id="wbi-pts-badge" class="badge badge-ok">4 + 1 Bonus Pkt.</div>
           <button type="button" id="wbi-skip" class="btn-sec" style="padding:4px 8px; font-size:0.74rem;">↺ Überspringen</button>
@@ -423,7 +423,7 @@
   }
 
   function updatePointsBadge() {
-    const basePts = Math.max(1, 4 - st.tipsUsed);
+    const basePts = st.tipsUsed > 0 ? 2 : 4;
     const bonusPts = (!st.answered && st.pixelPct < 50) ? 1 : 0;
     const badge = document.getElementById("wbi-pts-badge");
     const tag = document.getElementById("wbi-bonus-tag");
@@ -431,10 +431,9 @@
       badge.innerText = basePts + " + 1 Bonus Pkt.";
       tag.style.visibility = "visible";
     } else {
-      badge.innerText = basePts + (basePts === 1 ? " Punkt" : " Punkte");
+      badge.innerText = basePts + " Punkte";
       tag.style.visibility = "hidden";
     }
-
   }
 
   function startPixelReveal(imgUrl) {
@@ -502,48 +501,29 @@
     const btn = document.getElementById("wbi-tip-btn");
     if (st.tipsUsed === 0) {
       btn.disabled = false;
-      btn.innerText = "★ Tipp 1: Beruf (dann 3 Pkt.)";
-    } else if (st.tipsUsed === 1) {
-      btn.disabled = false;
-      btn.innerText = "★ Tipp 2: Herkunft (dann 2 Pkt.)";
-    } else if (st.tipsUsed === 2) {
-      btn.disabled = false;
-      btn.innerText = "★ Tipp 3: Vorname (dann 1 Pkt.)";
+      btn.style.opacity = "1";
+      btn.innerText = "★ Tipp (2 Pkt.)";
     } else {
       btn.disabled = true;
-      btn.innerText = "Alle 3 Tipps genutzt (1 Pkt.)";
+      btn.style.opacity = "1";
+      btn.innerText = "Vorname: " + (st.current ? st.current.firstName : "");
     }
   }
 
   document.getElementById("wbi-tip-btn").addEventListener("click", function() {
-    if (st.answered || st.tipsUsed >= 3 || !st.current) return;
-    st.tipsUsed += 1;
-    const area = document.getElementById("wbi-tips-area");
-    const pill = document.createElement("span");
-    pill.className = "tip-pill";
-
-    if (st.tipsUsed === 1) {
-      pill.innerText = "1. Beruf: " + st.current.occ;
-    } else if (st.tipsUsed === 2) {
-      const yr = st.current.birthYear ? " (" + st.current.birthYear + ")" : "";
-      pill.innerText = "2. Info: " + st.current.country + yr;
-    } else if (st.tipsUsed === 3) {
-      pill.innerText = "3. Vorname: " + st.current.firstName;
-    }
-
-    area.appendChild(pill);
+    if (st.answered || st.tipsUsed >= 1 || !st.current) return;
+    st.tipsUsed = 1;
     updateTipButton();
     updatePointsBadge();
   });
+
   async function loadNextCeleb() {
     clearInterval(pixelTimer);
-
     st.tipsUsed = 0;
     st.pixelPct = 0;
     st.answered = false;
 
     document.getElementById("infoBox").style.display = "none";
-    document.getElementById("wbi-tips-area").innerHTML = "";
     updateTipButton();
     updatePointsBadge();
 
